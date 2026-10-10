@@ -1,0 +1,38 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Orders{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Online orders</h1>
+  <p class="muted small-text" style="margin:0">Updates every 10 seconds{% if not request.cafe.accepts_orders %} · <span class="bad">online ordering is switched off in Details</span>{% endif %}</p>
+</div>
+<div id="orders-board" hx-get="{% url 'dashboard:orders' request.cafe.slug %}" hx-trigger="every 10s" hx-swap="innerHTML">
+  {% include "dashboard/_orders_board.html" %}
+</div>
+<script>
+// Show the number of new orders in the browser tab and play a short chime when one arrives.
+(() => {
+  let last = null;
+  const chime = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.18].forEach((t, i) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.value = i ? 1046 : 784; o.connect(g); g.connect(ctx.destination);
+        g.gain.setValueAtTime(0.15, ctx.currentTime + t); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.3);
+        o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.3);
+      });
+    } catch (e) {}
+  };
+  const check = () => {
+    const el = document.querySelector("[data-new-count]");
+    if (!el) return;
+    const n = parseInt(el.dataset.newCount, 10);
+    document.title = (n ? `(${n}) ` : "") + "Orders";
+    if (last !== null && n > last) chime();
+    last = n;
+  };
+  check();
+  document.body.addEventListener("htmx:afterSwap", check);
+})();
+</script>
+{% endblock %}

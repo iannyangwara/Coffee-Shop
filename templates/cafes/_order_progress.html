@@ -1,0 +1,29 @@
+{% load cafe_tags %}<div class="order-status" id="order-status" {% if order.is_active %}hx-get="{% url 'cafes:order_status' cafe.slug order.token %}" hx-trigger="every 15s" hx-swap="outerHTML"{% endif %}>
+  <div class="card order-hero{% if order.status == 'ready' %} is-ready{% elif order.status == 'cancelled' %} is-cancelled{% endif %}">
+    <p class="eyebrow">Order code</p>
+    <p class="order-code">{{ order.code }}</p>
+    <p class="order-state">
+      {% if order.status == 'new' %}Thanks {{ order.customer_name }}! {{ cafe.name }} has your order.
+      {% elif order.status == 'preparing' %}Your order is being made.
+      {% elif order.status == 'ready' %}Ready! Come to the counter and give the code above.
+      {% elif order.status == 'collected' %}Collected. Enjoy!
+      {% else %}This order was cancelled.{% if cafe.phone %} Questions? Call <a href="tel:{{ cafe.phone }}">{{ cafe.phone }}</a>.{% endif %}{% endif %}
+    </p>
+    {% if order.status != 'cancelled' %}
+    <ol class="steps" aria-label="Order progress">
+      <li class="{% if order.step >= 1 %}done{% endif %}">Received</li>
+      <li class="{% if order.step >= 2 %}done{% endif %}">Being made</li>
+      <li class="{% if order.step >= 3 %}done{% endif %}">Ready</li>
+    </ol>
+    {% endif %}
+    {% if order.is_active %}<p class="muted small">Pickup {% if order.pickup_at %}today at {{ order.pickup_at|time:"H:i" }}{% else %}as soon as it's ready{% endif %} · This page updates by itself.</p>{% endif %}
+  </div>
+  <div class="card">
+    <ul class="basket-lines">
+      {% for line in order.lines.all %}
+      <li class="basket-line"><div class="basket-info"><p class="basket-name">{{ line.quantity }} × {{ line.name }}</p>{% if line.sugar %}<p class="basket-extra">{{ line.get_sugar_display }}</p>{% endif %}{% if line.note %}<p class="basket-extra">“{{ line.note }}”</p>{% endif %}</div><span class="basket-price">{{ line.line_total|money:cafe }}</span></li>
+      {% endfor %}
+    </ul>
+    <p class="basket-total"><span>Pay at pickup</span><strong>{{ order.total|money:cafe }}</strong></p>
+  </div>
+</div>

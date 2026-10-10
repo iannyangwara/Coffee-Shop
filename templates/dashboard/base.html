@@ -20,6 +20,7 @@
     {% with name=request.resolver_match.url_name %}
     <nav class="dash-wrap dash-nav" aria-label="Dashboard">
       <a href="{% url 'dashboard:overview' request.cafe.slug %}" {% if name == 'overview' %}aria-current="page"{% endif %}>Overview</a>
+      <a href="{% url 'dashboard:orders' request.cafe.slug %}" {% if name == 'orders' %}aria-current="page"{% endif %}>Orders</a>
       <a href="{% url 'dashboard:till' request.cafe.slug %}" {% if name == 'till' %}aria-current="page"{% endif %}>Till</a>
       <a href="{% url 'dashboard:clock' request.cafe.slug %}" {% if name == 'clock' %}aria-current="page"{% endif %}>Clock in</a>
       {% if request.membership.is_owner %}

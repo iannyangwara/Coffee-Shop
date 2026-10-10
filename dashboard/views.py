@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 from cafes.models import Cafe, Closure, MenuCategory, MenuItem, OpeningHours
 from operations.reports import sales_report
 from operations.services import open_shift
+from ordering.models import Order
 
 from . import throttle
 from .access import cafe_access
@@ -58,6 +59,7 @@ def overview(request):
         "category_count": cafe.menu_categories.count(),
         "is_open": cafe.is_open_now(),
         "my_shift": open_shift(cafe, request.user),
+        "waiting_orders": cafe.orders.filter(status__in=Order.ACTIVE).count(),
     }
     if request.membership.is_owner:
         context["today"] = sales_report(cafe, "today")

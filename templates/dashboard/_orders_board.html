@@ -1,0 +1,47 @@
+{% load cafe_tags %}<div data-new-count="{{ new_count }}"></div>
+{% if partial and messages %}<ul class="messages">{% for message in messages %}<li class="msg-{{ message.tags }}">{{ message }}</li>{% endfor %}</ul>{% endif %}
+<div class="board">
+  {% for status, label, list in columns %}
+  <section class="board-col board-{{ status }}">
+    <h2>{{ label }} <span class="count">{{ list|length }}</span></h2>
+    {% for order in list %}
+    <article class="order-card">
+      <header class="order-card-head">
+        <span class="order-code">{{ order.code }}</span>
+        <span class="muted small-text">{{ order.created_at|time:"H:i" }}</span>
+      </header>
+      <p class="order-who"><strong>{{ order.customer_name }}</strong> · <a href="tel:{{ order.customer_phone }}">{{ order.customer_phone }}</a></p>
+      <p class="order-when{% if order.pickup_at %} is-later{% endif %}">{% if order.pickup_at %}Pickup at {{ order.pickup_at|time:"H:i" }}{% else %}As soon as possible{% endif %}</p>
+      <ul class="order-lines">
+        {% for line in order.lines.all %}
+        <li><strong>{{ line.quantity }} ×</strong> {{ line.name }}{% if line.sugar %} <span class="pill">{{ line.get_sugar_display }}</span>{% endif %}{% if line.note %}<br><span class="order-note">“{{ line.note }}”</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+      <p class="order-total">{{ order.total|money:request.cafe }} <span class="muted small-text">to pay</span></p>
+      <form method="post" action="{% url 'dashboard:order_status' request.cafe.slug order.pk %}" hx-post="{% url 'dashboard:order_status' request.cafe.slug order.pk %}" hx-target="#orders-board" class="order-actions">
+        {% csrf_token %}
+        {% if status == 'new' %}
+        <button class="btn" name="status" value="preparing">Start making</button>
+        {% elif status == 'preparing' %}
+        <button class="btn" name="status" value="ready">Mark ready</button>
+        {% else %}
+        <select name="payment_method" aria-label="Paid by">{% for value, text in payment_methods %}<option value="{{ value }}">{{ text }}</option>{% endfor %}</select>
+        <button class="btn" name="status" value="collected">Collected &amp; paid</button>
+        {% endif %}
+        <button type="button" class="link-button danger" hx-post="{% url 'dashboard:order_status' request.cafe.slug order.pk %}" hx-target="#orders-board" hx-vals='{"status": "cancelled"}' hx-confirm="Cancel order {{ order.code }}? Let {{ order.customer_name }} know by phone.">Cancel</button>
+      </form>
+    </article>
+    {% empty %}
+    <p class="muted board-empty">None</p>
+    {% endfor %}
+  </section>
+  {% endfor %}
+</div>
+{% if done %}
+<h2 class="section-gap">Finished today</h2>
+<div class="card"><ul class="list">
+  {% for order in done %}
+  <li class="item-row"><span><strong>{{ order.code }}</strong> · {{ order.customer_name }} · {{ order.total|money:request.cafe }}</span><span class="{% if order.status == 'cancelled' %}bad{% else %}muted{% endif %}">{{ order.get_status_display }} {{ order.status_changed_at|time:"H:i" }}</span></li>
+  {% endfor %}
+</ul></div>
+{% endif %}

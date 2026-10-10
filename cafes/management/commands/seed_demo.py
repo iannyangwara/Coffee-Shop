@@ -50,6 +50,8 @@ COSTS = {
     "Full breakfast": "3.60",
     "Avocado toast": "2.40",
 }
+# Drinks that ask the customer how much sugar they want when ordering online.
+SUGAR_CHOICE = {"Espresso", "Cappuccino", "Café latte", "Chai tea", "Hot chocolate", "Iced latte"}
 # How often each demo item is ordered, relative to the others.
 POPULARITY = {
     "Cappuccino": 10,
@@ -121,6 +123,7 @@ class Command(BaseCommand):
                         price=Decimal(price),
                         is_featured=featured,
                         stock_image=picture,
+                        asks_sugar=name in SUGAR_CHOICE,
                         position=item_position,
                     )
             self.stdout.write(self.style.SUCCESS(f"Created demo café at {cafe.get_absolute_url()}"))
@@ -135,6 +138,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"Created owner login '{owner_username}'."))
         StaffMembership.objects.get_or_create(user=user, cafe=cafe, defaults={"role": StaffMembership.Role.OWNER})
         self._add_missing_costs(cafe)
+        self._offer_sugar_choice(cafe)
         if not Sale.objects.filter(cafe=cafe).exists():
             self._add_demo_sales(cafe, user)
         self._add_demo_barista(cafe)
@@ -160,6 +164,15 @@ class Command(BaseCommand):
             updated += 1
         if updated:
             self.stdout.write(f"Added costs to {updated} demo menu items.")
+
+    def _offer_sugar_choice(self, cafe):
+        """Turn on the sugar choice for demo drinks, once (an owner who later turns it off keeps it off)."""
+        items = MenuItem.objects.filter(category__cafe=cafe)
+        if items.filter(asks_sugar=True).exists():
+            return
+        updated = items.filter(name__in=SUGAR_CHOICE).update(asks_sugar=True)
+        if updated:
+            self.stdout.write(f"Turned on the sugar choice for {updated} demo drinks.")
 
     def _add_demo_sales(self, cafe, user):
         """A month of believable sales so the reports have something to show. Only runs on an empty till."""
