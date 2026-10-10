@@ -80,3 +80,15 @@ input[type=checkbox] { width: 20px; height: 20px; }
 }
 .inline-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
 .inline-form input { width: auto; flex: 1 1 140px; }
+
+.label { font-weight: 600; }
+.form-preview { width: 100%; max-width: 320px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; margin-bottom: 16px; border: 1px solid var(--line); }
+.picture-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.picture-option { position: relative; display: flex; flex-direction: column; gap: 4px; font-size: .8rem; font-weight: 500; text-align: center; cursor: pointer; border: 2px solid var(--line); border-radius: 10px; padding: 4px; background: #fff; }
+.picture-option input { position: absolute; opacity: 0; pointer-events: none; }
+.picture-option img, .picture-option .no-picture { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; }
+.picture-option .no-picture { display: grid; place-items: center; background: var(--bg); color: var(--muted); }
+.picture-option:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.picture-option:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.field-check { flex-wrap: wrap; }
+.field-check .help { flex-basis: 100%; }

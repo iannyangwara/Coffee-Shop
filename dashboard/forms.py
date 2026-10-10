@@ -63,15 +63,18 @@ class MenuItemForm(forms.ModelForm):
             "description",
             "price",
             "photo",
+            "stock_image",
             "is_available",
             "is_featured",
             "is_vegetarian",
             "position",
         ]
-        widgets = {"description": forms.Textarea(attrs={"rows": 3})}
+        widgets = {"description": forms.Textarea(attrs={"rows": 3}), "stock_image": forms.RadioSelect}
+        labels = {"photo": "Your own photo", "stock_image": "Or pick a built-in picture"}
 
     def __init__(self, *args, cafe, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["stock_image"].choices = [("", "No picture")] + list(self.fields["stock_image"].choices)[1:]
         # Only this café's sections can be chosen; anything else fails validation.
         self.fields["category"].queryset = MenuCategory.objects.filter(cafe=cafe)
         self.fields["category"].empty_label = None

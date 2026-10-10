@@ -190,3 +190,17 @@ class LoginTests(TestCase):
         from django.contrib.auth import get_user_model
 
         self.assertTrue(get_user_model().objects.get(username="owner").password.startswith("argon2"))
+
+
+class PicturePickerTests(TestCase):
+    def test_owner_can_choose_built_in_picture(self):
+        cafe = make_cafe()
+        self.client.force_login(make_user("owner", cafe))
+        item = make_item(cafe)
+        response = self.client.post(
+            reverse("dashboard:item_edit", args=["bean-house", item.pk]),
+            {"category": item.category.pk, "name": item.name, "price": "3", "position": 0, "stock_image": "cappuccino"},
+        )
+        self.assertRedirects(response, "/dashboard/bean-house/menu/")
+        item.refresh_from_db()
+        self.assertEqual(item.stock_image, "cappuccino")

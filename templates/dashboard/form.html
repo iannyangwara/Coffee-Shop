@@ -3,6 +3,7 @@
 {% block content %}
 <div class="card narrow">
   <h1>{{ title }}</h1>
+  {% if item.image_url %}<img class="form-preview" src="{{ item.image_url }}" alt="Current picture of {{ item.name }}">{% endif %}
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% include "dashboard/_form_fields.html" %}

@@ -1,9 +1,10 @@
 {% extends "cafes/base.html" %}
 {% block title %}Visit · {{ cafe.name }}{% endblock %}
 {% block content %}
+{% include "cafes/_page_head.html" with heading="Visit us" subheading=cafe.address %}
 <section class="wrap section visit-grid">
-  <div>
-    <h1>Opening hours</h1>
+  <div class="card">
+    <h2>Opening hours</h2>
     <table class="hours">
       {% for day_name, hours in schedule %}
       <tr{% if forloop.counter0 == today_weekday %} class="today"{% endif %}>
@@ -19,6 +20,8 @@
     </ul>
     {% endif %}
 
+  </div>
+  <div class="card">
     <h2>Find us</h2>
     {% if cafe.address %}<p>{{ cafe.address }}{% if cafe.town %}<br>{{ cafe.town }}{% endif %}</p>{% endif %}
     <ul class="plain contact">
@@ -28,7 +31,7 @@
     </ul>
   </div>
   {% if cafe.latitude and cafe.longitude %}
-  <div>
+  <div class="card map-card">
     <iframe class="map" title="Map showing {{ cafe.name }}" loading="lazy"
       src="https://www.openstreetmap.org/export/embed.html?bbox={{ cafe.map_bbox }}&amp;layer=mapnik&amp;marker={{ cafe.latitude }},{{ cafe.longitude }}"></iframe>
     <p><a class="button" rel="noopener" href="https://www.google.com/maps/dir/?api=1&amp;destination={{ cafe.latitude }},{{ cafe.longitude }}">Get directions</a></p>

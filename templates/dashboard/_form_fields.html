@@ -1,8 +1,19 @@
-{% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+{% load static %}{% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
 {% for field in form.hidden_fields %}{{ field }}{% endfor %}
 {% for field in form.visible_fields %}
 <div class="field{% if field.errors %} has-error{% endif %}{% if field.widget_type == 'checkbox' %} field-check{% endif %}">
-  {% if field.widget_type == 'checkbox' %}
+  {% if field.name == 'stock_image' %}
+    <span class="label">{{ field.label }}</span>
+    <div class="picture-picker">
+      {% for choice in field %}
+      <label class="picture-option">
+        {{ choice.tag }}
+        {% if choice.data.value %}<img src="{% static 'cafes/stock/' %}{{ choice.data.value }}.svg" alt="" loading="lazy">{% else %}<span class="no-picture">None</span>{% endif %}
+        <span>{{ choice.choice_label }}</span>
+      </label>
+      {% endfor %}
+    </div>
+  {% elif field.widget_type == 'checkbox' %}
     {{ field }} <label for="{{ field.id_for_label }}">{{ field.label }}</label>
   {% else %}
     <label for="{{ field.id_for_label }}">{{ field.label }}</label>

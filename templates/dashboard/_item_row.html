@@ -1,6 +1,6 @@
 {% load cafe_tags %}<li class="item-row{% if not item.is_available %} is-sold-out{% endif %}" id="item-{{ item.pk }}">
   <a class="item-row-main" href="{% url 'dashboard:item_edit' request.cafe.slug item.pk %}">
-    {% if item.photo %}<img src="{{ item.photo.url }}" alt="" class="thumb">{% endif %}
+    {% if item.image_url %}<img src="{{ item.image_url }}" alt="" class="thumb">{% endif %}
     <span><strong>{{ item.name }}</strong>{% if item.is_featured %} <span class="pill">Featured</span>{% endif %}<br><span class="muted">{{ item.price|money:request.cafe }}</span></span>
   </a>
   <form method="post" action="{% url 'dashboard:item_toggle' request.cafe.slug item.pk %}"
