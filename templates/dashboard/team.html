@@ -1,0 +1,29 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Team{% endblock %}
+{% block content %}
+<h1>Team</h1>
+<section class="card">
+  <ul class="list">
+    {% for m in members %}
+    <li class="item-row">
+      <span><strong>{{ m.user.first_name|default:m.user.username }}</strong> <span class="pill">{{ m.get_role_display }}</span><br><span class="muted small-text">Username: {{ m.user.username }}</span></span>
+      {% if m.user_id != user.id %}
+      <form method="post" action="{% url 'dashboard:team_remove' request.cafe.slug m.pk %}" onsubmit="return confirm('Remove {{ m.user.first_name|default:m.user.username|escapejs }}? They will no longer be able to log in to this café.')">
+        {% csrf_token %}<button class="link-button danger" type="submit">Remove</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="card narrow">
+  <h2>Add someone</h2>
+  <p class="muted">Staff can use the till, clock in and out, and update the menu and hours. Only owners see sales, profit, shifts and the team.</p>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "dashboard/_form_fields.html" %}
+    <button type="submit" class="btn">Add to team</button>
+  </form>
+</section>
+{% endblock %}

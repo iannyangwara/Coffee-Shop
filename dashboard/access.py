@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from cafes.models import Cafe, StaffMembership
 
@@ -16,7 +17,7 @@ def cafe_access(owner_only=False):
 
     Sets request.cafe and request.membership. Users with no link to the café
     get a 404 (not 403) so they can't even tell whether it exists.
-    Platform superusers may manage any café as an owner.
+    Platform superusers may manage any café as an owner. Times render in the café's timezone.
     """
 
     def decorator(view):
@@ -33,7 +34,9 @@ def cafe_access(owner_only=False):
                 raise PermissionDenied
             request.cafe = cafe
             request.membership = membership
-            return view(request, *args, **kwargs)
+            # Show every time on the page in the café's own timezone, not the server's (UTC).
+            with timezone.override(cafe.tz):
+                return view(request, *args, **kwargs)
 
         return wrapper
 

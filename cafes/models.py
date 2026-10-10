@@ -80,6 +80,11 @@ class Cafe(models.Model):
     brand_colour = models.CharField(max_length=7, default="#6b3e26", validators=[hex_colour])
 
     is_published = models.BooleanField(default=True, help_text="Unpublished cafés are hidden from the public.")
+    clock_in_radius_m = models.PositiveIntegerField(
+        "clock-in distance (metres)",
+        default=150,
+        help_text="Staff clocking in further than this from the café's map pin are flagged for you to check.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -243,6 +248,15 @@ class MenuItem(models.Model):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=300, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    cost = models.DecimalField(
+        "cost to make",
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0)],
+        help_text="Ingredients and packaging for one. Used to work out your profit; never shown to customers.",
+    )
     photo = models.ImageField(upload_to="menu/", blank=True, validators=[validate_image_size])
     stock_image = models.CharField(
         "built-in picture",

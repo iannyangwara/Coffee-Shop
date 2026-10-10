@@ -1,0 +1,100 @@
+{% extends "dashboard/base.html" %}
+{% load cafe_tags %}
+{% block title %}Till{% endblock %}
+{% block content %}
+<h1>Record a sale</h1>
+<form method="post" class="till" id="till">
+  {% csrf_token %}
+  {% for category in categories %}{% if category.items.all %}
+  <section class="till-section">
+    <h2>{{ category.name }}</h2>
+    <div class="till-grid">
+      {% for item in category.items.all %}
+      <div class="till-item" data-price="{{ item.price }}">
+        {% if item.image_url %}<img src="{{ item.image_url }}" alt="" class="till-thumb">{% endif %}
+        <label for="qty-{{ item.pk }}" class="till-name">{{ item.name }}<span class="muted">{{ item.price|money:request.cafe }}</span></label>
+        <div class="stepper">
+          <button type="button" class="step" data-step="-1" aria-label="One less {{ item.name }}">−</button>
+          <input type="number" id="qty-{{ item.pk }}" name="qty_{{ item.pk }}" value="" min="0" max="99" inputmode="numeric" placeholder="0">
+          <button type="button" class="step" data-step="1" aria-label="One more {{ item.name }}">+</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}{% empty %}
+  <div class="card"><p>Add items to your menu first, then you can ring them up here.</p>
+  <a class="btn" href="{% url 'dashboard:item_add' request.cafe.slug %}">Add menu item</a></div>
+  {% endfor %}
+
+  {% if categories %}
+  <div class="till-bar">
+    <fieldset class="pay-methods">
+      <legend>Paid by</legend>
+      {% for value, label in payment_methods %}
+      <label class="pay-option"><input type="radio" name="payment_method" value="{{ value }}" {% if forloop.first %}checked{% endif %}> {{ label }}</label>
+      {% endfor %}
+    </fieldset>
+    <div class="till-total"><span class="muted">Total</span> <strong id="till-total" data-currency="{{ request.cafe.currency }}">{{ 0|money:request.cafe }}</strong></div>
+    <div class="actions" style="margin:0">
+      <button type="reset" class="btn btn-secondary">Clear</button>
+      <button type="submit" class="btn">Record sale</button>
+    </div>
+  </div>
+  {% endif %}
+</form>
+
+<h2 class="section-gap">Today's sales</h2>
+<div class="card">
+  <ul class="list">
+    {% for sale in recent %}
+    <li class="item-row{% if sale.is_void %} is-void{% endif %}">
+      <span>
+        <strong>{{ sale.total|money:request.cafe }}</strong> · {{ sale.get_payment_method_display }}
+        {% if sale.is_void %}<span class="pill pill-bad">Cancelled</span>{% endif %}<br>
+        <span class="muted small-text">{{ sale.sold_at|time:"H:i" }}{% if sale.recorded_by %} by {{ sale.recorded_by.first_name|default:sale.recorded_by.username }}{% endif %} ·
+        {% for line in sale.lines.all %}{{ line.quantity }} × {{ line.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+      </span>
+      {% if request.membership.is_owner and not sale.is_void %}
+      <form method="post" action="{% url 'dashboard:sale_void' request.cafe.slug sale.pk %}" onsubmit="return confirm('Cancel this sale? It will stop counting in your reports.')">
+        {% csrf_token %}<button class="link-button danger" type="submit">Cancel</button>
+      </form>
+      {% endif %}
+    </li>
+    {% empty %}<li class="muted">No sales yet today.</li>{% endfor %}
+  </ul>
+</div>
+
+<script>
+(() => {
+  const form = document.getElementById("till");
+  const total = document.getElementById("till-total");
+  if (!form || !total) return;
+  const symbols = { USD: "$", EUR: "€", GBP: "£" };
+  const cur = total.dataset.currency;
+  const fmt = (n) => {
+    const text = Number.isInteger(n) ? n.toLocaleString("en") : n.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return symbols[cur] ? symbols[cur] + text : cur + " " + text;
+  };
+  const update = () => {
+    let cents = 0;
+    form.querySelectorAll(".till-item").forEach((row) => {
+      const qty = parseInt(row.querySelector("input").value, 10) || 0;
+      row.classList.toggle("picked", qty > 0);
+      cents += Math.round(parseFloat(row.dataset.price) * 100) * Math.max(0, qty);
+    });
+    total.textContent = fmt(cents / 100);
+  };
+  form.addEventListener("click", (e) => {
+    const btn = e.target.closest(".step");
+    if (!btn) return;
+    const input = btn.parentElement.querySelector("input");
+    input.value = Math.min(99, Math.max(0, (parseInt(input.value, 10) || 0) + parseInt(btn.dataset.step, 10))) || "";
+    update();
+  });
+  form.addEventListener("input", update);
+  form.addEventListener("reset", () => setTimeout(update));
+  form.addEventListener("submit", () => form.querySelector("[type=submit]").disabled = true);
+})();
+</script>
+{% endblock %}
