@@ -1,6 +1,9 @@
 import datetime as dt
+import io
+import os
 import zoneinfo
 from decimal import Decimal
+from unittest import mock
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
@@ -78,6 +81,30 @@ class ValidationTests(TestCase):
 
 class MoneyFilterTests(TestCase):
     def test_formats(self):
-        cafe = Cafe(currency="KES")
-        self.assertEqual(money(Decimal("250.00"), cafe), "KES 250")
-        self.assertEqual(money(Decimal("1250.50"), cafe), "KES 1,250.50")
+        cafe = Cafe(currency="USD")
+        self.assertEqual(money(Decimal("3.00"), cafe), "$3")
+        self.assertEqual(money(Decimal("1250.50"), cafe), "$1,250.50")
+
+    def test_currency_without_symbol_uses_code(self):
+        self.assertEqual(money(Decimal("250"), Cafe(currency="KES")), "KES 250")
+
+
+class EnsureAdminCommandTests(TestCase):
+    def test_creates_admin_once(self):
+        from django.contrib.auth import get_user_model
+        from django.core.management import call_command
+
+        env = {"DJANGO_SUPERUSER_USERNAME": "boss", "DJANGO_SUPERUSER_PASSWORD": "a-long-test-password"}
+        with mock.patch.dict(os.environ, env):
+            call_command("ensure_admin", stdout=io.StringIO())
+            call_command("ensure_admin", stdout=io.StringIO())
+        user = get_user_model().objects.get(username="boss")
+        self.assertTrue(user.is_superuser)
+
+    def test_skips_without_variables(self):
+        from django.contrib.auth import get_user_model
+        from django.core.management import call_command
+
+        with mock.patch.dict(os.environ, {}, clear=True):
+            call_command("ensure_admin", stdout=io.StringIO())
+        self.assertFalse(get_user_model().objects.exists())
