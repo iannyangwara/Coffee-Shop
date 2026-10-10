@@ -1,0 +1,4 @@
+<span class="open-pill {% if is_open %}is-open{% else %}is-closed{% endif %}">
+  <span class="dot" aria-hidden="true"></span>
+  {% if is_open %}Open now{% else %}Closed now{% endif %}{% if today_hours %} · today {{ today_hours.opens|time:"g:i A" }} – {{ today_hours.closes|time:"g:i A" }}{% else %} · closed today{% endif %}
+</span>

@@ -49,3 +49,48 @@ class PublicSiteTests(TestCase):
 
     def test_healthcheck(self):
         self.assertEqual(self.client.get("/healthz").content, b"ok")
+
+
+class PictureTests(TestCase):
+    def setUp(self):
+        self.cafe = make_cafe()
+
+    def test_built_in_picture_used_when_no_photo(self):
+        item = make_item(self.cafe, "Latte", stock_image="latte", is_featured=True)
+        self.assertEqual(item.image_url, "/static/cafes/stock/latte.svg")
+        response = self.client.get(reverse("cafes:menu", args=["bean-house"]))
+        self.assertContains(response, "/static/cafes/stock/latte.svg")
+
+    def test_no_picture_means_no_image(self):
+        item = make_item(self.cafe, "Plain")
+        self.assertEqual(item.image_url, "")
+        response = self.client.get(reverse("cafes:menu", args=["bean-house"]))
+        self.assertContains(response, "no-image")
+
+    def test_default_cover_when_none_uploaded(self):
+        self.assertEqual(self.cafe.cover_url, "/static/cafes/stock/cover.svg")
+
+    def test_every_built_in_picture_file_exists(self):
+        from django.conf import settings
+
+        from cafes.models import StockImage
+
+        for value in [*StockImage.values, "cover"]:
+            with self.subTest(value):
+                self.assertTrue((settings.BASE_DIR / "static" / "cafes" / "stock" / f"{value}.svg").exists())
+
+
+class SeedDemoTests(TestCase):
+    def test_seed_adds_pictures_to_existing_demo_without_overriding_choices(self):
+        import io
+
+        from django.core.management import call_command
+
+        from cafes.models import MenuItem
+
+        call_command("seed_demo", stdout=io.StringIO(), stderr=io.StringIO())
+        MenuItem.objects.filter(name="Espresso").update(stock_image="")
+        MenuItem.objects.filter(name="Cappuccino").update(stock_image="latte")
+        call_command("seed_demo", stdout=io.StringIO(), stderr=io.StringIO())
+        self.assertEqual(MenuItem.objects.get(name="Espresso").stock_image, "espresso")
+        self.assertEqual(MenuItem.objects.get(name="Cappuccino").stock_image, "latte")

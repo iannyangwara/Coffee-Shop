@@ -20,12 +20,11 @@ def _base_context(cafe):
 
 def cafe_home(request, cafe_slug):
     cafe = _published_cafe(cafe_slug)
-    featured = (
-        MenuItem.objects.filter(category__cafe=cafe, is_featured=True)
-        .select_related("category")
-        .order_by("category__position", "position")[:6]
-    )
-    return render(request, "cafes/home.html", {**_base_context(cafe), "featured": featured})
+    items = MenuItem.objects.filter(category__cafe=cafe).order_by("category__position", "position")
+    featured = items.filter(is_featured=True)[:6]
+    # A few pictures of things that aren't already in the favourites, for the "about" section.
+    gallery = [i for i in items.filter(is_featured=False) if i.image_url][:4]
+    return render(request, "cafes/home.html", {**_base_context(cafe), "featured": featured, "gallery": gallery})
 
 
 def cafe_menu(request, cafe_slug):

@@ -3,8 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}{{ cafe.name }}{% endblock %}</title>
+  <title>{% block title %}{{ cafe.name }}{% if cafe.tagline %} · {{ cafe.tagline }}{% endif %}{% endblock %}</title>
   <meta name="description" content="{% block description %}{{ cafe.tagline|default:cafe.name }}{% endblock %}">
+  <meta property="og:title" content="{{ cafe.name }}">
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ cafe.cover_url }}">
+  <meta name="theme-color" content="{{ cafe.brand_colour }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
   <style>:root { --brand: {{ cafe.brand_colour }}; }</style>
 </head>
@@ -12,35 +18,38 @@
   <header class="site-header">
     <div class="wrap header-inner">
       <a class="brand" href="{% url 'cafes:home' cafe.slug %}">
-        {% if cafe.logo %}<img src="{{ cafe.logo.url }}" alt="" class="brand-logo">{% endif %}
+        {% if cafe.logo %}<img src="{{ cafe.logo.url }}" alt="" class="brand-logo">{% else %}<span class="brand-mark" aria-hidden="true">{{ cafe.name|slice:":1" }}</span>{% endif %}
         <span>{{ cafe.name }}</span>
       </a>
       <nav class="site-nav" aria-label="Main">
+        <a href="{% url 'cafes:home' cafe.slug %}" {% if request.resolver_match.url_name == 'home' %}aria-current="page"{% endif %}>Home</a>
         <a href="{% url 'cafes:menu' cafe.slug %}" {% if request.resolver_match.url_name == 'menu' %}aria-current="page"{% endif %}>Menu</a>
         <a href="{% url 'cafes:visit' cafe.slug %}" {% if request.resolver_match.url_name == 'visit' %}aria-current="page"{% endif %}>Visit</a>
       </nav>
     </div>
   </header>
 
-  <div class="status-bar {% if is_open %}is-open{% else %}is-closed{% endif %}">
-    <div class="wrap">
-      {% if is_open %}<strong>Open now</strong>{% else %}<strong>Closed now</strong>{% endif %}
-      {% if today_hours %}· Today {{ today_hours.opens|time:"g:i A" }} – {{ today_hours.closes|time:"g:i A" }}{% else %}· Closed today{% endif %}
-    </div>
-  </div>
-
   <main>{% block content %}{% endblock %}</main>
 
   <footer class="site-footer">
-    <div class="wrap footer-inner">
+    <div class="wrap footer-grid">
       <div>
-        <strong>{{ cafe.name }}</strong>
-        {% if cafe.address %}<div>{{ cafe.address }}{% if cafe.town %}, {{ cafe.town }}{% endif %}</div>{% endif %}
+        <p class="footer-name">{{ cafe.name }}</p>
+        {% if cafe.tagline %}<p class="footer-muted">{{ cafe.tagline }}</p>{% endif %}
       </div>
-      <div class="footer-links">
-        {% if cafe.phone %}<a href="tel:{{ cafe.phone }}">Call {{ cafe.phone }}</a>{% endif %}
-        {% if cafe.whatsapp %}<a href="https://wa.me/{{ cafe.whatsapp }}" rel="noopener">WhatsApp</a>{% endif %}
-        {% if cafe.instagram %}<a href="https://instagram.com/{{ cafe.instagram }}" rel="noopener">Instagram</a>{% endif %}
+      <div>
+        <p class="footer-heading">Find us</p>
+        {% if cafe.address %}<p class="footer-muted">{{ cafe.address }}{% if cafe.town %}<br>{{ cafe.town }}{% endif %}</p>{% endif %}
+        <p><a href="{% url 'cafes:visit' cafe.slug %}">Hours &amp; directions</a></p>
+      </div>
+      <div>
+        <p class="footer-heading">Say hello</p>
+        <ul class="plain footer-links">
+          {% if cafe.phone %}<li><a href="tel:{{ cafe.phone }}">{{ cafe.phone }}</a></li>{% endif %}
+          {% if cafe.whatsapp %}<li><a href="https://wa.me/{{ cafe.whatsapp }}" rel="noopener">WhatsApp</a></li>{% endif %}
+          {% if cafe.instagram %}<li><a href="https://instagram.com/{{ cafe.instagram }}" rel="noopener">Instagram</a></li>{% endif %}
+          {% if cafe.email %}<li><a href="mailto:{{ cafe.email }}">{{ cafe.email }}</a></li>{% endif %}
+        </ul>
       </div>
     </div>
   </footer>

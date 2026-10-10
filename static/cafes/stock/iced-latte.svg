@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450" width="600" height="450">
+<defs>
+  <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+    <stop offset="0" stop-color="#eef0f2"/><stop offset="1" stop-color="#cfd8de"/>
+  </radialGradient>
+  <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+    <feDropShadow dx="10" dy="14" stdDeviation="12" flood-color="#3b2416" flood-opacity=".28"/>
+  </filter>
+  <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+    <feDropShadow dx="4" dy="6" stdDeviation="5" flood-color="#3b2416" flood-opacity=".25"/>
+  </filter>
+  
+</defs>
+<rect width="600" height="450" fill="url(#bg)"/>
+<g transform="translate(385 50) rotate(96) scale(0.93)" filter="url(#soft)"><ellipse rx="13" ry="18" fill="#4a2a17"/><path d="M0 -15 C-5 -5 5 5 0 15" stroke="#2a160b" stroke-width="2.5" fill="none"/></g>
+<g transform="translate(52 228) rotate(7) scale(0.95)" filter="url(#soft)"><ellipse rx="13" ry="18" fill="#4a2a17"/><path d="M0 -15 C-5 -5 5 5 0 15" stroke="#2a160b" stroke-width="2.5" fill="none"/></g>
+<g transform="translate(59 57) rotate(76) scale(1.09)" filter="url(#soft)"><ellipse rx="13" ry="18" fill="#4a2a17"/><path d="M0 -15 C-5 -5 5 5 0 15" stroke="#2a160b" stroke-width="2.5" fill="none"/></g>
+<g transform="translate(89 112) rotate(113) scale(1.13)" filter="url(#soft)"><ellipse rx="13" ry="18" fill="#4a2a17"/><path d="M0 -15 C-5 -5 5 5 0 15" stroke="#2a160b" stroke-width="2.5" fill="none"/></g>
+<g transform="translate(567 39) rotate(155) scale(0.90)" filter="url(#soft)"><ellipse rx="13" ry="18" fill="#4a2a17"/><path d="M0 -15 C-5 -5 5 5 0 15" stroke="#2a160b" stroke-width="2.5" fill="none"/></g>
+<g transform="translate(101 68) rotate(56) scale(1.09)" filter="url(#soft)"><ellipse rx="13" ry="18" fill="#4a2a17"/><path d="M0 -15 C-5 -5 5 5 0 15" stroke="#2a160b" stroke-width="2.5" fill="none"/></g>
+<g transform="translate(53 104) rotate(122) scale(0.95)" filter="url(#soft)"><ellipse rx="13" ry="18" fill="#4a2a17"/><path d="M0 -15 C-5 -5 5 5 0 15" stroke="#2a160b" stroke-width="2.5" fill="none"/></g>
+<g transform="translate(569 68) rotate(75) scale(1.06)" filter="url(#soft)"><ellipse rx="13" ry="18" fill="#4a2a17"/><path d="M0 -15 C-5 -5 5 5 0 15" stroke="#2a160b" stroke-width="2.5" fill="none"/></g>
+<g transform="translate(42 294) rotate(138) scale(1.00)" filter="url(#soft)"><ellipse rx="13" ry="18" fill="#4a2a17"/><path d="M0 -15 C-5 -5 5 5 0 15" stroke="#2a160b" stroke-width="2.5" fill="none"/></g>
+<g transform="translate(510 149) rotate(125) scale(1.01)" filter="url(#soft)"><ellipse rx="13" ry="18" fill="#4a2a17"/><path d="M0 -15 C-5 -5 5 5 0 15" stroke="#2a160b" stroke-width="2.5" fill="none"/></g><g filter="url(#shadow)"><linearGradient id="drink" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9d6bf"/><stop offset="0.35" stop-color="#c58d58"/><stop offset="0.7" stop-color="#8d5128"/><stop offset="1" stop-color="#5d3014"/></linearGradient>
+<rect x="235" y="389" width="130" height="16" rx="8" fill="#3b2416" opacity=".18"/>
+<g transform="rotate(12 300 85)"><rect x="318" y="30" width="14" height="250" rx="7" fill="#e05a47"/><rect x="321" y="30" width="4" height="250" fill="#fff" opacity=".35"/></g>
+<path d="M229 125 L371 125 L355 391 L245 391Z" fill="url(#drink)"/>
+<rect x="255" y="140" width="40" height="40" rx="7" fill="#ffffff" opacity=".45" stroke="#ffffff" stroke-opacity=".7" transform="rotate(12 275 160)"/>
+<rect x="300" y="128" width="40" height="40" rx="7" fill="#ffffff" opacity=".45" stroke="#ffffff" stroke-opacity=".7" transform="rotate(-8 320 148)"/>
+<rect x="330" y="165" width="40" height="40" rx="7" fill="#ffffff" opacity=".45" stroke="#ffffff" stroke-opacity=".7" transform="rotate(20 350 185)"/>
+<rect x="270" y="185" width="40" height="40" rx="7" fill="#ffffff" opacity=".45" stroke="#ffffff" stroke-opacity=".7" transform="rotate(-15 290 205)"/>
+
+<path d="M225 85 L375 85 L357 395 L243 395Z" fill="#ffffff" fill-opacity=".12" stroke="#ffffff" stroke-opacity=".85" stroke-width="4"/>
+<path d="M239 105 L253 365" stroke="#fff" stroke-opacity=".6" stroke-width="6" stroke-linecap="round"/>
+</g>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450" width="600" height="450">
+<defs>
+  <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+    <stop offset="0" stop-color="#f6e7d6"/><stop offset="1" stop-color="#e9cfb3"/>
+  </radialGradient>
+  <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+    <feDropShadow dx="10" dy="14" stdDeviation="12" flood-color="#3b2416" flood-opacity=".28"/>
+  </filter>
+  <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+    <feDropShadow dx="4" dy="6" stdDeviation="5" flood-color="#3b2416" flood-opacity=".25"/>
+  </filter>
+  
+</defs>
+<rect width="600" height="450" fill="url(#bg)"/>
+<g filter="url(#shadow)"><circle cx="300" cy="240" r="190" fill="#fbf8f4"/></g><circle cx="300" cy="240" r="148" fill="none" stroke="#ebe3d9" stroke-width="3"/><g filter="url(#soft)"><path d="M200 150 Q300 110 400 150 L410 330 Q300 350 190 330Z" fill="#7a4220"/><path d="M212 162 Q300 128 388 162 L396 318 Q300 336 204 318Z" fill="#c7884a"/></g><ellipse cx="260" cy="200" rx="9" ry="6" fill="#c9a06a" transform="rotate(20 260 200)"/><ellipse cx="330" cy="230" rx="9" ry="6" fill="#c9a06a" transform="rotate(-30 330 230)"/><ellipse cx="290" cy="270" rx="9" ry="6" fill="#c9a06a" transform="rotate(60 290 270)"/><ellipse cx="350" cy="290" rx="9" ry="6" fill="#c9a06a" transform="rotate(10 350 290)"/><ellipse cx="240" cy="300" rx="9" ry="6" fill="#c9a06a" transform="rotate(-10 240 300)"/><ellipse cx="310" cy="180" rx="9" ry="6" fill="#c9a06a" transform="rotate(45 310 180)"/><circle cx="470" cy="330" r="4" fill="#9a5d2b"/><circle cx="455" cy="350" r="3" fill="#9a5d2b"/><circle cx="140" cy="150" r="3" fill="#9a5d2b"/>
+</svg>

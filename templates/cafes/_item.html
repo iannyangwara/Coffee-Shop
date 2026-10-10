@@ -1,11 +1,11 @@
-{% load cafe_tags %}<article class="item{% if not item.is_available %} is-unavailable{% endif %}">
-  {% if item.photo %}<img class="item-photo" src="{{ item.photo.url }}" alt="{{ item.name }}" loading="lazy">{% endif %}
+{% load cafe_tags %}<article class="item{% if not item.is_available %} is-unavailable{% endif %}{% if not item.image_url %} no-image{% endif %}">
+  {% if item.image_url %}<div class="item-media"><img src="{{ item.image_url }}" alt="{{ item.name }}" loading="lazy" width="600" height="450">{% if not item.is_available %}<span class="badge badge-out">Sold out</span>{% elif item.is_featured %}<span class="badge">Favourite</span>{% endif %}</div>{% endif %}
   <div class="item-body">
     <div class="item-top">
       <h3 class="item-name">{{ item.name }}{% if item.is_vegetarian %} <span class="tag" title="Vegetarian">V</span>{% endif %}</h3>
       <span class="item-price">{{ item.price|money:cafe }}</span>
     </div>
     {% if item.description %}<p class="item-desc">{{ item.description }}</p>{% endif %}
-    {% if not item.is_available %}<p class="sold-out">Sold out today</p>{% endif %}
+    {% if not item.is_available and not item.image_url %}<p class="sold-out">Sold out today</p>{% endif %}
   </div>
 </article>

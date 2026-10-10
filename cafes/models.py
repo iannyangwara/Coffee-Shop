@@ -12,6 +12,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
 
@@ -90,6 +91,10 @@ class Cafe(models.Model):
 
     def get_absolute_url(self):
         return reverse("cafes:home", kwargs={"cafe_slug": self.slug})
+
+    @property
+    def cover_url(self):
+        return self.cover_photo.url if self.cover_photo else static("cafes/stock/cover.svg")
 
     @property
     def tz(self):
@@ -216,12 +221,36 @@ class MenuCategory(models.Model):
         return self.name
 
 
+class StockImage(models.TextChoices):
+    """Built-in pictures (static/cafes/stock/) for cafés that don't have their own photos yet."""
+
+    ESPRESSO = "espresso", "Espresso"
+    CAPPUCCINO = "cappuccino", "Cappuccino"
+    LATTE = "latte", "Latte"
+    CHAI = "chai", "Chai / tea"
+    HOT_CHOCOLATE = "hot-chocolate", "Hot chocolate"
+    ICED_LATTE = "iced-latte", "Iced coffee"
+    JUICE = "juice", "Juice"
+    CROISSANT = "croissant", "Croissant"
+    BANANA_BREAD = "banana-bread", "Cake / loaf slice"
+    MANDAZI = "mandazi", "Mandazi / pastries"
+    BREAKFAST = "breakfast", "Full breakfast"
+    AVOCADO_TOAST = "avocado-toast", "Avocado toast"
+
+
 class MenuItem(models.Model):
     category = models.ForeignKey(MenuCategory, on_delete=models.CASCADE, related_name="items")
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=300, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     photo = models.ImageField(upload_to="menu/", blank=True, validators=[validate_image_size])
+    stock_image = models.CharField(
+        "built-in picture",
+        max_length=30,
+        choices=StockImage.choices,
+        blank=True,
+        help_text="Shown when there's no uploaded photo.",
+    )
     is_available = models.BooleanField(default=True, help_text="Untick when sold out; it stays on the menu greyed out.")
     is_featured = models.BooleanField(default=False, help_text="Shown on the café's home page.")
     is_vegetarian = models.BooleanField(default=False)
@@ -238,6 +267,15 @@ class MenuItem(models.Model):
     @property
     def cafe(self):
         return self.category.cafe
+
+    @property
+    def image_url(self):
+        """The uploaded photo if there is one, else the chosen built-in picture, else nothing."""
+        if self.photo:
+            return self.photo.url
+        if self.stock_image:
+            return static(f"cafes/stock/{self.stock_image}.svg")
+        return ""
 
 
 class StaffMembership(models.Model):

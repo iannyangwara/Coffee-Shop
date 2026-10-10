@@ -12,24 +12,24 @@ from cafes.models import Cafe, MenuCategory, MenuItem, OpeningHours, StaffMember
 
 MENU = {
     "Hot drinks": [
-        ("Espresso", "Single shot of our house roast.", "2.50", True),
-        ("Cappuccino", "Espresso, steamed milk and a thick layer of foam.", "3.50", True),
-        ("Café latte", "Smooth and milky.", "3.75", False),
-        ("Chai tea", "Strong black tea brewed with milk and spices.", "2.00", False),
-        ("Hot chocolate", "Rich cocoa with steamed milk.", "3.75", False),
+        ("Espresso", "Single shot of our house roast.", "2.50", True, "espresso"),
+        ("Cappuccino", "Espresso, steamed milk and a thick layer of foam.", "3.50", True, "cappuccino"),
+        ("Café latte", "Smooth and milky.", "3.75", False, "latte"),
+        ("Chai tea", "Strong black tea brewed with milk and spices.", "2.00", False, "chai"),
+        ("Hot chocolate", "Rich cocoa with steamed milk.", "3.75", False, "hot-chocolate"),
     ],
     "Cold drinks": [
-        ("Iced latte", "Espresso over ice with cold milk.", "4.25", False),
-        ("Fresh passion juice", "Squeezed every morning.", "3.00", False),
+        ("Iced latte", "Espresso over ice with cold milk.", "4.25", False, "iced-latte"),
+        ("Fresh passion juice", "Squeezed every morning.", "3.00", False, "juice"),
     ],
     "Bakery": [
-        ("Butter croissant", "Baked in-house every morning.", "2.75", True),
-        ("Banana bread", "Moist slice with walnuts.", "3.00", False),
-        ("Mandazi (3 pcs)", "Lightly sweet East African doughnuts.", "2.00", False),
+        ("Butter croissant", "Baked in-house every morning.", "2.75", True, "croissant"),
+        ("Banana bread", "Moist slice with walnuts.", "3.00", False, "banana-bread"),
+        ("Mandazi (3 pcs)", "Lightly sweet East African doughnuts.", "2.00", False, "mandazi"),
     ],
     "Breakfast": [
-        ("Full breakfast", "Eggs, sausage, toast, beans and grilled tomato.", "9.50", False),
-        ("Avocado toast", "Smashed avocado on sourdough with chilli flakes.", "7.00", True),
+        ("Full breakfast", "Eggs, sausage, toast, beans and grilled tomato.", "9.50", False, "breakfast"),
+        ("Avocado toast", "Smashed avocado on sourdough with chilli flakes.", "7.00", True, "avocado-toast"),
     ],
 }
 
@@ -67,7 +67,8 @@ class Command(BaseCommand):
             ),
         )
         if not created:
-            self.stdout.write("Demo café already exists; leaving it as it is.")
+            self.stdout.write("Demo café already exists; leaving its menu as it is.")
+            self._add_missing_pictures(cafe)
         else:
             for day in OpeningHours.Weekday.values:
                 if day == OpeningHours.Weekday.SUNDAY:
@@ -76,13 +77,14 @@ class Command(BaseCommand):
                     OpeningHours.objects.create(cafe=cafe, weekday=day, opens=dt.time(7), closes=dt.time(19))
             for position, (category_name, items) in enumerate(MENU.items()):
                 category = MenuCategory.objects.create(cafe=cafe, name=category_name, position=position)
-                for item_position, (name, description, price, featured) in enumerate(items):
+                for item_position, (name, description, price, featured, picture) in enumerate(items):
                     MenuItem.objects.create(
                         category=category,
                         name=name,
                         description=description,
                         price=Decimal(price),
                         is_featured=featured,
+                        stock_image=picture,
                         position=item_position,
                     )
             self.stdout.write(self.style.SUCCESS(f"Created demo café at {cafe.get_absolute_url()}"))
@@ -96,3 +98,15 @@ class Command(BaseCommand):
             user = User.objects.create_user(owner_username, password=owner_password, first_name="Demo")
             self.stdout.write(self.style.SUCCESS(f"Created owner login '{owner_username}'."))
         StaffMembership.objects.get_or_create(user=user, cafe=cafe, defaults={"role": StaffMembership.Role.OWNER})
+
+    def _add_missing_pictures(self, cafe):
+        """Give demo items created before pictures existed their built-in picture (never overrides a choice)."""
+        pictures = {name: picture for items in MENU.values() for name, *_, picture in items}
+        updated = 0
+        for item in MenuItem.objects.filter(category__cafe=cafe, stock_image="", photo=""):
+            if item.name in pictures:
+                item.stock_image = pictures[item.name]
+                item.save(update_fields=["stock_image", "updated_at"])
+                updated += 1
+        if updated:
+            self.stdout.write(f"Added pictures to {updated} demo menu items.")
