@@ -1,0 +1,38 @@
+{% extends "cafes/base.html" %}
+{% block title %}Visit · {{ cafe.name }}{% endblock %}
+{% block content %}
+<section class="wrap section visit-grid">
+  <div>
+    <h1>Opening hours</h1>
+    <table class="hours">
+      {% for day_name, hours in schedule %}
+      <tr{% if forloop.counter0 == today_weekday %} class="today"{% endif %}>
+        <th scope="row">{{ day_name }}</th>
+        <td>{% if hours and not hours.is_closed %}{{ hours.opens|time:"g:i A" }} – {{ hours.closes|time:"g:i A" }}{% else %}Closed{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% if upcoming_closures %}
+    <h2>Special closures</h2>
+    <ul class="plain">
+      {% for closure in upcoming_closures %}<li>{{ closure.date|date:"D j M" }}{% if closure.note %}: {{ closure.note }}{% endif %}</li>{% endfor %}
+    </ul>
+    {% endif %}
+
+    <h2>Find us</h2>
+    {% if cafe.address %}<p>{{ cafe.address }}{% if cafe.town %}<br>{{ cafe.town }}{% endif %}</p>{% endif %}
+    <ul class="plain contact">
+      {% if cafe.phone %}<li><a href="tel:{{ cafe.phone }}">{{ cafe.phone }}</a></li>{% endif %}
+      {% if cafe.email %}<li><a href="mailto:{{ cafe.email }}">{{ cafe.email }}</a></li>{% endif %}
+      {% if cafe.whatsapp %}<li><a href="https://wa.me/{{ cafe.whatsapp }}" rel="noopener">Message us on WhatsApp</a></li>{% endif %}
+    </ul>
+  </div>
+  {% if cafe.latitude and cafe.longitude %}
+  <div>
+    <iframe class="map" title="Map showing {{ cafe.name }}" loading="lazy"
+      src="https://www.openstreetmap.org/export/embed.html?bbox={{ cafe.map_bbox }}&amp;layer=mapnik&amp;marker={{ cafe.latitude }},{{ cafe.longitude }}"></iframe>
+    <p><a class="button" rel="noopener" href="https://www.google.com/maps/dir/?api=1&amp;destination={{ cafe.latitude }},{{ cafe.longitude }}">Get directions</a></p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

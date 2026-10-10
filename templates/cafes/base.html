@@ -1,0 +1,48 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ cafe.name }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ cafe.tagline|default:cafe.name }}{% endblock %}">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  <style>:root { --brand: {{ cafe.brand_colour }}; }</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="{% url 'cafes:home' cafe.slug %}">
+        {% if cafe.logo %}<img src="{{ cafe.logo.url }}" alt="" class="brand-logo">{% endif %}
+        <span>{{ cafe.name }}</span>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="{% url 'cafes:menu' cafe.slug %}" {% if request.resolver_match.url_name == 'menu' %}aria-current="page"{% endif %}>Menu</a>
+        <a href="{% url 'cafes:visit' cafe.slug %}" {% if request.resolver_match.url_name == 'visit' %}aria-current="page"{% endif %}>Visit</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="status-bar {% if is_open %}is-open{% else %}is-closed{% endif %}">
+    <div class="wrap">
+      {% if is_open %}<strong>Open now</strong>{% else %}<strong>Closed now</strong>{% endif %}
+      {% if today_hours %}· Today {{ today_hours.opens|time:"g:i A" }} – {{ today_hours.closes|time:"g:i A" }}{% else %}· Closed today{% endif %}
+    </div>
+  </div>
+
+  <main>{% block content %}{% endblock %}</main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <div>
+        <strong>{{ cafe.name }}</strong>
+        {% if cafe.address %}<div>{{ cafe.address }}{% if cafe.town %}, {{ cafe.town }}{% endif %}</div>{% endif %}
+      </div>
+      <div class="footer-links">
+        {% if cafe.phone %}<a href="tel:{{ cafe.phone }}">Call {{ cafe.phone }}</a>{% endif %}
+        {% if cafe.whatsapp %}<a href="https://wa.me/{{ cafe.whatsapp }}" rel="noopener">WhatsApp</a>{% endif %}
+        {% if cafe.instagram %}<a href="https://instagram.com/{{ cafe.instagram }}" rel="noopener">Instagram</a>{% endif %}
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

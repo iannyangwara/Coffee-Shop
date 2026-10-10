@@ -1,0 +1,23 @@
+{% extends "cafes/base.html" %}
+{% block title %}Menu · {{ cafe.name }}{% endblock %}
+{% block content %}
+<section class="wrap section">
+  <h1>Menu</h1>
+  {% if categories|length > 1 %}
+  <nav class="category-jump" aria-label="Menu sections">
+    {% for category in categories %}<a href="#cat-{{ category.id }}">{{ category.name }}</a>{% endfor %}
+  </nav>
+  {% endif %}
+  {% for category in categories %}
+  <section class="menu-category" id="cat-{{ category.id }}">
+    <h2>{{ category.name }}</h2>
+    {% if category.description %}<p class="muted">{{ category.description }}</p>{% endif %}
+    <div class="item-list">
+      {% for item in category.items.all %}{% include "cafes/_item.html" %}{% endfor %}
+    </div>
+  </section>
+  {% empty %}
+  <p class="muted">The menu is being updated. Please check back soon.</p>
+  {% endfor %}
+</section>
+{% endblock %}

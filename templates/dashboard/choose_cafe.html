@@ -1,0 +1,8 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<h1>Your cafés</h1>
+<ul class="list">
+  {% for cafe in cafes %}<li><a href="{% url 'dashboard:overview' cafe.slug %}">{{ cafe.name }}</a></li>
+  {% empty %}<li class="muted">Your login isn't linked to a café yet. Ask the platform admin to add you.</li>{% endfor %}
+</ul>
+{% endblock %}

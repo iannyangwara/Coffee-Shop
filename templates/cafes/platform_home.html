@@ -1,0 +1,23 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Café websites</title>
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body>
+  <main class="wrap section">
+    <h1>Café websites</h1>
+    <p class="muted">Menus, opening hours and directions for local cafés.</p>
+    <ul class="cafe-list">
+      {% for cafe in cafes %}
+      <li><a href="{{ cafe.get_absolute_url }}"><strong>{{ cafe.name }}</strong>{% if cafe.town %} · {{ cafe.town }}{% endif %}</a>{% if cafe.tagline %}<div class="muted">{{ cafe.tagline }}</div>{% endif %}</li>
+      {% empty %}
+      <li class="muted">No cafés yet.</li>
+      {% endfor %}
+    </ul>
+    <p><a href="{% url 'dashboard:login' %}">Café owner login</a></p>
+  </main>
+</body>
+</html>

@@ -1,0 +1,38 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{% block title %}Dashboard{% endblock %}{% if request.cafe %} · {{ request.cafe.name }}{% endif %}</title>
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <script src="{% static 'js/htmx.min.js' %}" defer></script>
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <header class="dash-header">
+    <div class="dash-wrap dash-header-inner">
+      <a class="dash-brand" href="{% url 'dashboard:home' %}">{% if request.cafe %}{{ request.cafe.name }}{% else %}Café dashboard{% endif %}</a>
+      {% if user.is_authenticated %}
+      <div class="actions small" style="margin:0"><a href="{% url 'dashboard:password_change' %}" style="color:#ddd">Password</a><form method="post" action="{% url 'dashboard:logout' %}">{% csrf_token %}<button class="link-button" type="submit">Log out</button></form></div>
+      {% endif %}
+    </div>
+    {% if request.cafe %}
+    {% with name=request.resolver_match.url_name %}
+    <nav class="dash-wrap dash-nav" aria-label="Dashboard">
+      <a href="{% url 'dashboard:overview' request.cafe.slug %}" {% if name == 'overview' %}aria-current="page"{% endif %}>Overview</a>
+      <a href="{% url 'dashboard:menu' request.cafe.slug %}" {% if name == 'menu' or 'item' in name or 'category' in name %}aria-current="page"{% endif %}>Menu</a>
+      <a href="{% url 'dashboard:hours' request.cafe.slug %}" {% if name == 'hours' %}aria-current="page"{% endif %}>Hours</a>
+      {% if request.membership.is_owner %}<a href="{% url 'dashboard:settings' request.cafe.slug %}" {% if name == 'settings' %}aria-current="page"{% endif %}>Details</a>{% endif %}
+      <a href="{{ request.cafe.get_absolute_url }}" target="_blank" rel="noopener">View site ↗</a>
+    </nav>
+    {% endwith %}
+    {% endif %}
+  </header>
+  <main class="dash-wrap dash-main">
+    {% if messages %}
+    <ul class="messages">{% for message in messages %}<li class="msg-{{ message.tags }}">{{ message }}</li>{% endfor %}</ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

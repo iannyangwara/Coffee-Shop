@@ -1,0 +1,30 @@
+{% extends "cafes/base.html" %}
+{% block content %}
+<section class="hero"{% if cafe.cover_photo %} style="background-image: linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)), url('{{ cafe.cover_photo.url }}')"{% endif %}>
+  <div class="wrap">
+    <h1>{{ cafe.name }}</h1>
+    {% if cafe.tagline %}<p class="hero-tagline">{{ cafe.tagline }}</p>{% endif %}
+    <div class="hero-actions">
+      <a class="button" href="{% url 'cafes:menu' cafe.slug %}">See the menu</a>
+      <a class="button button-ghost" href="{% url 'cafes:visit' cafe.slug %}">Hours &amp; directions</a>
+    </div>
+  </div>
+</section>
+
+{% if featured %}
+<section class="wrap section">
+  <h2>Customer favourites</h2>
+  <div class="item-grid">
+    {% for item in featured %}{% include "cafes/_item.html" %}{% endfor %}
+  </div>
+  <p><a href="{% url 'cafes:menu' cafe.slug %}">Full menu →</a></p>
+</section>
+{% endif %}
+
+{% if cafe.about %}
+<section class="wrap section">
+  <h2>About us</h2>
+  <div class="prose">{{ cafe.about|linebreaks }}</div>
+</section>
+{% endif %}
+{% endblock %}

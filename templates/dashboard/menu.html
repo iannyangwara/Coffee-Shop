@@ -1,0 +1,31 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Menu{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Menu</h1>
+  <div class="actions">
+    <a class="btn" href="{% url 'dashboard:item_add' request.cafe.slug %}">Add item</a>
+    <a class="btn btn-secondary" href="{% url 'dashboard:category_add' request.cafe.slug %}">Add section</a>
+  </div>
+</div>
+<p class="muted">Tap “Available” to mark something sold out. It stays on the menu, greyed out.</p>
+{% for category in categories %}
+<section class="card">
+  <div class="page-head">
+    <h2>{{ category.name }}</h2>
+    <div class="actions small">
+      <a href="{% url 'dashboard:item_add' request.cafe.slug %}?category={{ category.pk }}">+ Item</a>
+      <a href="{% url 'dashboard:category_edit' request.cafe.slug category.pk %}">Rename</a>
+      <form method="post" action="{% url 'dashboard:category_delete' request.cafe.slug category.pk %}" onsubmit="return confirm('Delete this section?')">{% csrf_token %}<button class="link-button danger" type="submit">Delete</button></form>
+    </div>
+  </div>
+  <ul class="list">
+    {% for item in category.items.all %}{% include "dashboard/_item_row.html" %}
+    {% empty %}<li class="muted">No items yet.</li>{% endfor %}
+  </ul>
+</section>
+{% empty %}
+<div class="card"><p>Your menu is empty. Start by adding a section such as “Hot drinks”.</p>
+<a class="btn" href="{% url 'dashboard:category_add' request.cafe.slug %}">Add a section</a></div>
+{% endfor %}
+{% endblock %}

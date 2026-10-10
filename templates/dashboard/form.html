@@ -1,0 +1,20 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>{{ title }}</h1>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% include "dashboard/_form_fields.html" %}
+    <div class="actions">
+      <button class="btn" type="submit">Save</button>
+      {% if request.cafe %}<a href="{% url 'dashboard:menu' request.cafe.slug %}">Cancel</a>{% endif %}
+    </div>
+  </form>
+  {% if item %}
+  <form method="post" action="{% url 'dashboard:item_delete' request.cafe.slug item.pk %}" class="danger-zone" onsubmit="return confirm('Delete {{ item.name|escapejs }}? This cannot be undone.')">
+    {% csrf_token %}<button class="btn btn-danger" type="submit">Delete item</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Hours{% endblock %}
+{% block content %}
+<h1>Opening hours</h1>
+<p class="muted">Times are in {{ request.cafe.timezone }}. Closing after midnight is fine, e.g. 6 PM – 1 AM.</p>
+<form method="post" class="card">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  {% if formset.non_form_errors %}<div class="form-errors">{{ formset.non_form_errors }}</div>{% endif %}
+  <div class="hours-grid">
+    {% for form in formset %}
+    <div class="day-row">
+      {{ form.id }}
+      <strong class="day-name">{{ form.instance.get_weekday_display }}</strong>
+      <label class="day-closed">{{ form.is_closed }} Closed</label>
+      <label class="day-time">Opens {{ form.opens }}</label>
+      <label class="day-time">Closes {{ form.closes }}</label>
+      {% if form.errors %}<div class="error day-error">{% for e in form.non_field_errors %}{{ e }} {% endfor %}{% for f in form %}{% for e in f.errors %}{{ f.label }}: {{ e }} {% endfor %}{% endfor %}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <button class="btn" type="submit">Save hours</button>
+</form>
+
+<h2>Special closures</h2>
+<div class="card">
+  <ul class="list">
+    {% for closure in closures %}
+    <li class="item-row"><span>{{ closure.date|date:"l j F Y" }}{% if closure.note %} · {{ closure.note }}{% endif %}</span>
+      <form method="post" action="{% url 'dashboard:closure_delete' request.cafe.slug closure.pk %}">{% csrf_token %}<button class="link-button danger" type="submit">Remove</button></form></li>
+    {% empty %}<li class="muted">No upcoming closures.</li>{% endfor %}
+  </ul>
+  <form method="post" action="{% url 'dashboard:closure_add' request.cafe.slug %}" class="inline-form">
+    {% csrf_token %}
+    {{ closure_form.date.label_tag }} {{ closure_form.date }}
+    {{ closure_form.note.label_tag }} {{ closure_form.note }}
+    <button class="btn btn-secondary" type="submit">Add closure</button>
+  </form>
+</div>
+{% endblock %}

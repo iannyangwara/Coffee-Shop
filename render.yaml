@@ -1,0 +1,30 @@
+# Render blueprint: one web service + one PostgreSQL database.
+# In Render: New > Blueprint, pick this repo. Plans are the small paid tiers
+# (free databases are deleted after 30 days, so they're not used here).
+databases:
+  - name: cafe-platform-db
+    plan: basic-256mb
+    databaseName: cafe_platform
+    user: cafe
+
+services:
+  - type: web
+    name: cafe-platform
+    runtime: python
+    plan: starter
+    buildCommand: ./build.sh
+    startCommand: gunicorn config.wsgi:application --workers 2 --timeout 30
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.1
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cafe-platform-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: TRUST_PROXY_HEADERS
+        value: "1"

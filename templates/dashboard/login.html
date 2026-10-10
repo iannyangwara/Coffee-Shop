@@ -1,0 +1,13 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>Café owner login</h1>
+  <form method="post">
+    {% csrf_token %}
+    {% include "dashboard/_form_fields.html" %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="btn" type="submit">Log in</button>
+  </form>
+</div>
+{% endblock %}

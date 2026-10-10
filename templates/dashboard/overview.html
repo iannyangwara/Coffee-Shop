@@ -1,0 +1,20 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Overview{% endblock %}
+{% block content %}
+<h1>Hello{% if user.first_name %}, {{ user.first_name }}{% endif %}</h1>
+<div class="stats">
+  <div class="stat"><span class="stat-value {% if is_open %}ok{% else %}bad{% endif %}">{% if is_open %}Open{% else %}Closed{% endif %}</span><span class="stat-label">right now</span></div>
+  <div class="stat"><span class="stat-value">{{ item_count }}</span><span class="stat-label">menu items</span></div>
+  <div class="stat"><span class="stat-value">{{ category_count }}</span><span class="stat-label">menu sections</span></div>
+  <div class="stat"><span class="stat-value">{{ sold_out|length }}</span><span class="stat-label">sold out</span></div>
+</div>
+{% if not request.cafe.is_published %}<p class="notice">Your site is hidden from the public. Turn on “Is published” in Details when you're ready.</p>{% endif %}
+{% if sold_out %}
+<h2>Sold out right now</h2>
+<ul class="list">{% for item in sold_out %}{% include "dashboard/_item_row.html" %}{% endfor %}</ul>
+{% endif %}
+<div class="actions">
+  <a class="btn" href="{% url 'dashboard:item_add' request.cafe.slug %}">Add menu item</a>
+  <a class="btn btn-secondary" href="{% url 'dashboard:hours' request.cafe.slug %}">Update hours</a>
+</div>
+{% endblock %}
