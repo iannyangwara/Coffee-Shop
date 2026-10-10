@@ -1,6 +1,8 @@
 # Render blueprint: one web service + one PostgreSQL database.
-# In Render: New > Blueprint, pick this repo. Plans are the small paid tiers
-# (free databases are deleted after 30 days, so they're not used here).
+# In Render: New > Blueprint, pick this repo. Render asks for the values marked
+# `sync: false` (your admin password and the demo owner password).
+# Plans are the small paid tiers (about $13/month together). Free databases are
+# deleted after 30 days, so they're not used here.
 databases:
   - name: cafe-platform-db
     plan: basic-256mb
@@ -15,6 +17,7 @@ services:
     buildCommand: ./build.sh
     startCommand: gunicorn config.wsgi:application --workers 2 --timeout 30
     healthCheckPath: /healthz
+    autoDeploy: true
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.1
@@ -28,3 +31,9 @@ services:
         value: "0"
       - key: TRUST_PROXY_HEADERS
         value: "1"
+      - key: DJANGO_SUPERUSER_USERNAME
+        value: admin
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
+      - key: DEMO_OWNER_PASSWORD
+        sync: false

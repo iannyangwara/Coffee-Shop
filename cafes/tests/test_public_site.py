@@ -19,7 +19,7 @@ class PublicSiteTests(TestCase):
 
     def test_menu_lists_items_and_marks_sold_out(self):
         response = self.client.get(reverse("cafes:menu", args=["bean-house"]))
-        self.assertContains(response, "KES 250")
+        self.assertContains(response, "$250")
         self.assertContains(response, "Sold out today")
 
     def test_visit_page_shows_hours_and_map(self):

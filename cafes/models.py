@@ -72,7 +72,7 @@ class Cafe(models.Model):
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
     timezone = models.CharField(max_length=64, default="Africa/Nairobi", validators=[validate_timezone])
-    currency = models.CharField(max_length=3, default="KES")
+    currency = models.CharField(max_length=3, default="USD", help_text="Three-letter code, e.g. USD")
 
     logo = models.ImageField(upload_to="logos/", blank=True, validators=[validate_image_size])
     cover_photo = models.ImageField(upload_to="covers/", blank=True, validators=[validate_image_size])

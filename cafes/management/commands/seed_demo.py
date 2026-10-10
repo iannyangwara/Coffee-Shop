@@ -12,24 +12,24 @@ from cafes.models import Cafe, MenuCategory, MenuItem, OpeningHours, StaffMember
 
 MENU = {
     "Hot drinks": [
-        ("Espresso", "Single shot of our house roast.", "150", True),
-        ("Cappuccino", "Espresso, steamed milk and a thick layer of foam.", "250", True),
-        ("Café latte", "Smooth and milky.", "250", False),
-        ("Kenyan tea", "Strong black tea brewed with milk and spices.", "120", False),
-        ("Hot chocolate", "Rich cocoa with steamed milk.", "280", False),
+        ("Espresso", "Single shot of our house roast.", "2.50", True),
+        ("Cappuccino", "Espresso, steamed milk and a thick layer of foam.", "3.50", True),
+        ("Café latte", "Smooth and milky.", "3.75", False),
+        ("Chai tea", "Strong black tea brewed with milk and spices.", "2.00", False),
+        ("Hot chocolate", "Rich cocoa with steamed milk.", "3.75", False),
     ],
     "Cold drinks": [
-        ("Iced latte", "Espresso over ice with cold milk.", "300", False),
-        ("Fresh passion juice", "Squeezed every morning.", "200", False),
+        ("Iced latte", "Espresso over ice with cold milk.", "4.25", False),
+        ("Fresh passion juice", "Squeezed every morning.", "3.00", False),
     ],
     "Bakery": [
-        ("Butter croissant", "Baked in-house every morning.", "180", True),
-        ("Banana bread", "Moist slice with walnuts.", "200", False),
-        ("Mandazi (3 pcs)", "Lightly sweet East African doughnuts.", "100", False),
+        ("Butter croissant", "Baked in-house every morning.", "2.75", True),
+        ("Banana bread", "Moist slice with walnuts.", "3.00", False),
+        ("Mandazi (3 pcs)", "Lightly sweet East African doughnuts.", "2.00", False),
     ],
     "Breakfast": [
-        ("Full breakfast", "Eggs, sausage, toast, beans and grilled tomato.", "650", False),
-        ("Avocado toast", "Smashed avocado on sourdough with chilli flakes.", "450", True),
+        ("Full breakfast", "Eggs, sausage, toast, beans and grilled tomato.", "9.50", False),
+        ("Avocado toast", "Smashed avocado on sourdough with chilli flakes.", "7.00", True),
     ],
 }
 

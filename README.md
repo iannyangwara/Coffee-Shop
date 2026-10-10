@@ -58,7 +58,7 @@ as `demo-owner`.
 ## Tests and checks
 
 ```bash
-python manage.py test        # 40 tests: hours logic, public pages, access control, login lockout
+python manage.py test        # 43 tests: hours logic, public pages, access control, login lockout
 ruff check . && ruff format --check .
 ```
 
@@ -66,12 +66,18 @@ GitHub Actions runs all of this against a real PostgreSQL on every push and pull
 
 ## Deploying (Render)
 
-`render.yaml` sets up a web service and a PostgreSQL database. In Render choose
-**New → Blueprint** and pick this repository. After the first deploy, open the
-service's Shell and run `python manage.py createsuperuser`.
+`render.yaml` sets up a web service and a PostgreSQL database (about $13/month).
 
-Uploaded photos need S3-compatible storage in production (Cloudflare R2 is cheapest);
-set the `MEDIA_*` variables from `.env.example`.
+1. In Render choose **New → Blueprint** and pick this repository.
+2. Render asks for two passwords: `DJANGO_SUPERUSER_PASSWORD` (your `admin` login for `/admin/`)
+   and `DEMO_OWNER_PASSWORD` (the `demo-owner` login for the Bean House demo dashboard).
+3. Click **Apply**. Every push to `main` deploys automatically after that.
+
+The build creates the admin and the demo café on the first deploy only. To skip the
+demo café, leave `DEMO_OWNER_PASSWORD` empty.
+
+Uploaded photos need S3-compatible storage in production (Cloudflare R2 is cheapest),
+because Render's disk is wiped on each deploy. Set the `MEDIA_*` variables from `.env.example`.
 
 ## Next phases
 
