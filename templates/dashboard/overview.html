@@ -1,7 +1,17 @@
 {% extends "dashboard/base.html" %}
 {% block title %}Overview{% endblock %}
+{% load cafe_tags %}
 {% block content %}
 <h1>Hello{% if user.first_name %}, {{ user.first_name }}{% endif %}</h1>
+{% if today %}
+<a class="card today-card" href="{% url 'dashboard:reports' request.cafe.slug %}?period=today">
+  <span><span class="stat-label">Sales today</span><br><strong class="stat-value">{{ today.revenue|money:request.cafe }}</strong></span>
+  <span><span class="stat-label">Profit today</span><br><strong class="stat-value">{{ today.profit|money:request.cafe }}</strong></span>
+  <span><span class="stat-label">Orders</span><br><strong class="stat-value">{{ today.count }}</strong></span>
+  {% if today.best_sellers %}<span><span class="stat-label">Top seller</span><br><strong class="stat-value">{{ today.best_sellers.0.name }}</strong></span>{% endif %}
+</a>
+<p><strong>On shift:</strong> {% for s in on_shift %}{{ s.user.first_name|default:s.user.username }} (since {{ s.clock_in_at|time:"H:i" }}){% if s.clock_in_outside %} <span class="pill pill-bad">Away from café</span>{% endif %}{% if not forloop.last %}, {% endif %}{% empty %}<span class="muted">nobody yet</span>{% endfor %} · <a href="{% url 'dashboard:shifts' request.cafe.slug %}">Shifts</a></p>
+{% endif %}
 <div class="stats">
   <div class="stat"><span class="stat-value {% if is_open %}ok{% else %}bad{% endif %}">{% if is_open %}Open{% else %}Closed{% endif %}</span><span class="stat-label">right now</span></div>
   <div class="stat"><span class="stat-value">{{ item_count }}</span><span class="stat-label">menu items</span></div>
@@ -14,7 +24,9 @@
 <ul class="list">{% for item in sold_out %}{% include "dashboard/_item_row.html" %}{% endfor %}</ul>
 {% endif %}
 <div class="actions">
-  <a class="btn" href="{% url 'dashboard:item_add' request.cafe.slug %}">Add menu item</a>
+  <a class="btn" href="{% url 'dashboard:till' request.cafe.slug %}">Record a sale</a>
+  <a class="btn btn-secondary" href="{% url 'dashboard:clock' request.cafe.slug %}">{% if my_shift %}Clock out{% else %}Clock in{% endif %}</a>
+  <a class="btn btn-secondary" href="{% url 'dashboard:item_add' request.cafe.slug %}">Add menu item</a>
   <a class="btn btn-secondary" href="{% url 'dashboard:hours' request.cafe.slug %}">Update hours</a>
 </div>
 {% endblock %}

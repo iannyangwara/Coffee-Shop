@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from cafes.models import Cafe, Closure, MenuCategory, MenuItem, OpeningHours
+from operations.reports import sales_report
+from operations.services import open_shift
 
 from . import throttle
 from .access import cafe_access
@@ -55,7 +57,11 @@ def overview(request):
         "sold_out": items.filter(is_available=False).select_related("category"),
         "category_count": cafe.menu_categories.count(),
         "is_open": cafe.is_open_now(),
+        "my_shift": open_shift(cafe, request.user),
     }
+    if request.membership.is_owner:
+        context["today"] = sales_report(cafe, "today")
+        context["on_shift"] = cafe.shifts.filter(clock_out_at__isnull=True).select_related("user", "cafe")
     return render(request, "dashboard/overview.html", context)
 
 

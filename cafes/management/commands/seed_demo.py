@@ -2,6 +2,7 @@
 
 import datetime as dt
 import os
+import random
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -9,6 +10,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from cafes.models import Cafe, MenuCategory, MenuItem, OpeningHours, StaffMembership
+from operations.models import Sale, SaleLine, Shift, distance_m
 
 MENU = {
     "Hot drinks": [
@@ -32,6 +34,40 @@ MENU = {
         ("Avocado toast", "Smashed avocado on sourdough with chilli flakes.", "7.00", True, "avocado-toast"),
     ],
 }
+
+# Rough cost to make one of each demo item, so the demo shows profit.
+COSTS = {
+    "Espresso": "0.55",
+    "Cappuccino": "0.90",
+    "Café latte": "1.00",
+    "Chai tea": "0.40",
+    "Hot chocolate": "1.10",
+    "Iced latte": "1.20",
+    "Fresh passion juice": "0.95",
+    "Butter croissant": "0.85",
+    "Banana bread": "0.70",
+    "Mandazi (3 pcs)": "0.45",
+    "Full breakfast": "3.60",
+    "Avocado toast": "2.40",
+}
+# How often each demo item is ordered, relative to the others.
+POPULARITY = {
+    "Cappuccino": 10,
+    "Café latte": 8,
+    "Chai tea": 7,
+    "Espresso": 5,
+    "Butter croissant": 6,
+    "Mandazi (3 pcs)": 5,
+    "Iced latte": 4,
+    "Banana bread": 3,
+    "Avocado toast": 3,
+    "Fresh passion juice": 3,
+    "Hot chocolate": 2,
+    "Full breakfast": 2,
+}
+# Orders per hour of the day, relative: a breakfast rush and a smaller lunch one.
+HOURLY = {7: 6, 8: 10, 9: 8, 10: 5, 11: 4, 12: 6, 13: 6, 14: 3, 15: 3, 16: 3, 17: 2, 18: 1}
+DEMO_DAYS = 30
 
 
 class Command(BaseCommand):
@@ -98,6 +134,10 @@ class Command(BaseCommand):
             user = User.objects.create_user(owner_username, password=owner_password, first_name="Demo")
             self.stdout.write(self.style.SUCCESS(f"Created owner login '{owner_username}'."))
         StaffMembership.objects.get_or_create(user=user, cafe=cafe, defaults={"role": StaffMembership.Role.OWNER})
+        self._add_missing_costs(cafe)
+        if not Sale.objects.filter(cafe=cafe).exists():
+            self._add_demo_sales(cafe, user)
+        self._add_demo_barista(cafe)
 
     def _add_missing_pictures(self, cafe):
         """Give demo items created before pictures existed their built-in picture (never overrides a choice)."""
@@ -110,3 +150,101 @@ class Command(BaseCommand):
                 updated += 1
         if updated:
             self.stdout.write(f"Added pictures to {updated} demo menu items.")
+
+    def _add_missing_costs(self, cafe):
+        """Give demo items a cost to make (never overrides one the owner entered)."""
+        updated = 0
+        for item in MenuItem.objects.filter(category__cafe=cafe, cost__isnull=True, name__in=COSTS):
+            item.cost = Decimal(COSTS[item.name])
+            item.save(update_fields=["cost", "updated_at"])
+            updated += 1
+        if updated:
+            self.stdout.write(f"Added costs to {updated} demo menu items.")
+
+    def _add_demo_sales(self, cafe, user):
+        """A month of believable sales so the reports have something to show. Only runs on an empty till."""
+        items = [i for i in MenuItem.objects.filter(category__cafe=cafe) if i.name in POPULARITY]
+        if not items:
+            return
+        rng = random.Random(2026)
+        weights = [POPULARITY[i.name] for i in items]
+        today = cafe.local_now().date()
+        now = cafe.local_now()
+        methods, method_weights = ["mobile", "cash", "card"], [6, 3, 1]
+        planned = []
+        for days_ago in range(DEMO_DAYS - 1, -1, -1):
+            day = today - dt.timedelta(days=days_ago)
+            hours = cafe.hours_for(day)
+            if hours is None:
+                continue
+            busy = 1.3 if day.weekday() in (4, 5) else 1.0  # Fridays and Saturdays are busier
+            for hour, weight in HOURLY.items():
+                if not hours.contains(dt.time(hour)):
+                    continue
+                for _ in range(round(weight * busy * rng.uniform(0.6, 1.4))):
+                    moment = dt.datetime.combine(day, dt.time(hour, rng.randrange(60)), tzinfo=cafe.tz)
+                    if moment >= now:
+                        continue
+                    picks = rng.choices(items, weights=weights, k=rng.choice([1, 1, 1, 2, 2, 3]))
+                    basket = {}
+                    for item in picks:
+                        basket[item] = basket.get(item, 0) + 1
+                    planned.append((moment, rng.choices(methods, method_weights)[0], basket))
+        sales = Sale.objects.bulk_create(
+            Sale(
+                cafe=cafe,
+                sold_at=moment,
+                recorded_by=user,
+                payment_method=method,
+                total=sum(item.price * qty for item, qty in basket.items()),
+                cost_total=sum((item.cost or 0) * qty for item, qty in basket.items()),
+            )
+            for moment, method, basket in planned
+        )
+        SaleLine.objects.bulk_create(
+            SaleLine(
+                sale=sale, menu_item=item, name=item.name, quantity=qty, unit_price=item.price, unit_cost=item.cost
+            )
+            for sale, (_, _, basket) in zip(sales, planned, strict=True)
+            for item, qty in basket.items()
+        )
+        self.stdout.write(f"Added {len(sales)} demo sales.")
+
+    def _add_demo_barista(self, cafe):
+        """A demo worker with two weeks of shifts, one of them clocked in away from the café."""
+        User = get_user_model()
+        if User.objects.filter(username="demo-barista").exists() or cafe.latitude is None:
+            return
+        barista = User.objects.create_user("demo-barista", first_name="Amina")
+        barista.set_unusable_password()  # shows on the timesheet only; nobody logs in as her
+        barista.save()
+        StaffMembership.objects.create(user=barista, cafe=cafe, role=StaffMembership.Role.STAFF)
+        rng = random.Random(7)
+        today = cafe.local_now().date()
+        lat, lng = float(cafe.latitude), float(cafe.longitude)
+        for days_ago in range(14, 0, -1):
+            day = today - dt.timedelta(days=days_ago)
+            if day.weekday() == OpeningHours.Weekday.SUNDAY:
+                continue
+            start = dt.datetime.combine(day, dt.time(6, 45 + rng.randrange(12)), tzinfo=cafe.tz)
+            end = dt.datetime.combine(day, dt.time(15, rng.randrange(20)), tzinfo=cafe.tz)
+            away = days_ago == 3  # 0.006° is about 650 m: the timesheet will flag it
+            in_lat = round(lat + (0.006 if away else rng.uniform(-0.0002, 0.0002)), 6)
+            in_lng = round(lng + rng.uniform(-0.0002, 0.0002), 6)
+            out_lat = round(lat + rng.uniform(-0.0002, 0.0002), 6)
+            out_lng = round(lng + rng.uniform(-0.0002, 0.0002), 6)
+            Shift.objects.create(
+                cafe=cafe,
+                user=barista,
+                clock_in_at=start,
+                clock_in_lat=in_lat,
+                clock_in_lng=in_lng,
+                clock_in_accuracy_m=rng.randrange(8, 30),
+                clock_in_distance_m=round(distance_m(in_lat, in_lng, lat, lng)),
+                clock_out_at=end,
+                clock_out_lat=out_lat,
+                clock_out_lng=out_lng,
+                clock_out_accuracy_m=rng.randrange(8, 30),
+                clock_out_distance_m=round(distance_m(out_lat, out_lng, lat, lng)),
+            )
+        self.stdout.write("Added demo barista Amina with two weeks of shifts.")

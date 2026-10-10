@@ -1,7 +1,9 @@
 from django import forms
+from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from django.forms import modelformset_factory
 
-from cafes.models import Cafe, Closure, MenuCategory, MenuItem, OpeningHours
+from cafes.models import Cafe, Closure, MenuCategory, MenuItem, OpeningHours, StaffMembership
 
 
 class CafeSettingsForm(forms.ModelForm):
@@ -22,6 +24,7 @@ class CafeSettingsForm(forms.ModelForm):
             "logo",
             "cover_photo",
             "brand_colour",
+            "clock_in_radius_m",
             "is_published",
         ]
         widgets = {
@@ -62,6 +65,7 @@ class MenuItemForm(forms.ModelForm):
             "name",
             "description",
             "price",
+            "cost",
             "photo",
             "stock_image",
             "is_available",
@@ -79,6 +83,7 @@ class MenuItemForm(forms.ModelForm):
         self.fields["category"].queryset = MenuCategory.objects.filter(cafe=cafe)
         self.fields["category"].empty_label = None
         self.fields["price"].label = f"Price ({cafe.currency})"
+        self.fields["cost"].label = f"Cost to make ({cafe.currency})"
 
 
 class OpeningHoursForm(forms.ModelForm):
@@ -121,3 +126,35 @@ class ClosureForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.cafe = self.cafe
         return super().save(commit)
+
+
+class StaffForm(forms.Form):
+    """Create a login for a new worker. Owners hand them the username and password."""
+
+    first_name = forms.CharField(max_length=150, label="Their name")
+    username = forms.CharField(max_length=150, help_text="What they'll type to log in, e.g. mary.k")
+    password = forms.CharField(
+        widget=forms.PasswordInput(render_value=False), help_text="At least 10 characters. They can change it later."
+    )
+    role = forms.ChoiceField(choices=StaffMembership.Role.choices, initial=StaffMembership.Role.STAFF)
+
+    def clean_username(self):
+        username = self.cleaned_data["username"].strip()
+        UsernameField = get_user_model()._meta.get_field("username")
+        for validator in UsernameField.validators:
+            validator(username)
+        if get_user_model().objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError("That username is taken. Try adding a number or surname.")
+        return username
+
+    def clean(self):
+        data = super().clean()
+        if data.get("password"):
+            # Check the password even when the username was rejected, so both problems show at once.
+            username = data.get("username") or self.data.get("username", "")
+            user = get_user_model()(username=username, first_name=data.get("first_name", ""))
+            try:
+                validate_password(data["password"], user)
+            except forms.ValidationError as error:
+                self.add_error("password", error)
+        return data

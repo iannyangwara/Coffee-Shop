@@ -1,0 +1,91 @@
+{% extends "dashboard/base.html" %}
+{% load cafe_tags %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Sales and profit</h1>
+  {% include "dashboard/_period_tabs.html" %}
+</div>
+<p class="muted">{% if report.start_date == report.end_date %}{{ report.end_date|date:"l j F" }}{% else %}{{ report.start_date|date:"j M" }} to {{ report.end_date|date:"j M Y" }}{% endif %}</p>
+
+<div class="stats">
+  <div class="stat"><span class="stat-value">{{ report.revenue|money:request.cafe }}</span><span class="stat-label">sales</span></div>
+  <div class="stat"><span class="stat-value">{{ report.profit|money:request.cafe }}</span><span class="stat-label">gross profit{% if report.margin is not None %} ({{ report.margin|floatformat:0 }}% margin){% endif %}</span></div>
+  <div class="stat"><span class="stat-value">{{ report.count }}</span><span class="stat-label">orders</span></div>
+  <div class="stat"><span class="stat-value">{{ report.average|money:request.cafe }}</span><span class="stat-label">average order</span></div>
+</div>
+
+{% if missing_costs or report.uncosted_revenue %}
+<p class="notice">
+  {% if report.uncosted_revenue %}{{ report.uncosted_revenue|money:request.cafe }} of these sales is for items without a “cost to make”, so it isn't counted in profit.{% endif %}
+  {% if missing_costs %}{{ missing_costs }} menu item{{ missing_costs|pluralize }} {{ missing_costs|pluralize:"has,have" }} no cost yet. <a href="{% url 'dashboard:menu' request.cafe.slug %}">Add costs on the Menu page</a> to see your full profit.{% endif %}
+</p>
+{% endif %}
+
+{% if not report.count %}
+<div class="card"><p>No sales in this period yet. Sales recorded on the <a href="{% url 'dashboard:till' request.cafe.slug %}">Till</a> show up here straight away.</p></div>
+{% else %}
+
+{% if report.days|length > 1 %}
+<section class="card">
+  <h2>Sales per day</h2>
+  <div class="chart-columns" role="img" aria-label="Sales per day, highest {{ peak_day|money:request.cafe }}">
+    {% for day in report.days %}
+    <div class="col" data-tip="{{ day.date|date:'D j M' }}: {{ day.revenue|money:request.cafe }}" tabindex="0">
+      <span class="col-bar" style="height: {{ day.revenue|percent_of:peak_day }}%"></span>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="chart-axis muted"><span>{{ report.start_date|date:"j M" }}</span><span>Best day {{ peak_day|money:request.cafe }}</span><span>{{ report.end_date|date:"j M" }}</span></div>
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>Best sellers</h2>
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th scope="col">Item</th><th scope="col" class="num">Sold</th><th scope="col" class="num">Sales</th><th scope="col" class="num">Profit</th></tr></thead>
+    <tbody>
+      {% for row in report.best_sellers %}
+      <tr>
+        <td><span class="rank">{{ forloop.counter }}</span> {{ row.name }}
+          <span class="inline-bar" style="width: {{ row.quantity|percent_of:top_quantity }}%" title="{{ row.quantity }} sold"></span></td>
+        <td class="num">{{ row.quantity }}</td>
+        <td class="num">{{ row.revenue|money:request.cafe }}</td>
+        <td class="num">{% if row.profit is None %}<span class="muted" title="No cost to make set">–</span>{% else %}{{ row.profit|money:request.cafe }}{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="two-col">
+<section class="card">
+  <h2>Busiest hours</h2>
+  <div class="hbars">
+    {% for row in report.busy_hours %}
+    <div class="hbar" data-tip="{{ row.sales }} order{{ row.sales|pluralize }}" tabindex="0">
+      <span class="hbar-label">{{ row.hour|stringformat:"02d" }}:00</span>
+      <span class="hbar-track"><span class="hbar-fill" style="width: {{ row.sales|percent_of:peak_hour }}%"></span></span>
+      <span class="hbar-value">{{ row.sales }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="card">
+  <h2>How customers paid</h2>
+  <div class="hbars">
+    {% for row in report.payment_split %}
+    <div class="hbar" data-tip="{{ row.revenue|money:request.cafe }}" tabindex="0">
+      <span class="hbar-label">{{ row.label }}</span>
+      <span class="hbar-track"><span class="hbar-fill" style="width: {{ row.revenue|percent_of:report.revenue }}%"></span></span>
+      <span class="hbar-value">{{ row.revenue|percent_of:report.revenue|floatformat:0 }}%</span>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from . import views
+from . import views, views_ops
 
 app_name = "dashboard"
 
@@ -36,4 +36,12 @@ urlpatterns = [
     path("<slug:cafe_slug>/hours/closures/", views.closure_add, name="closure_add"),
     path("<slug:cafe_slug>/hours/closures/<int:pk>/delete/", views.closure_delete, name="closure_delete"),
     path("<slug:cafe_slug>/settings/", views.cafe_settings, name="settings"),
+    path("<slug:cafe_slug>/till/", views_ops.till, name="till"),
+    path("<slug:cafe_slug>/sales/<int:pk>/void/", views_ops.sale_void, name="sale_void"),
+    path("<slug:cafe_slug>/reports/", views_ops.sales_reports, name="reports"),
+    path("<slug:cafe_slug>/clock/", views_ops.clock, name="clock"),
+    path("<slug:cafe_slug>/clock/action/", views_ops.clock_action, name="clock_action"),
+    path("<slug:cafe_slug>/shifts/", views_ops.shifts, name="shifts"),
+    path("<slug:cafe_slug>/team/", views_ops.team, name="team"),
+    path("<slug:cafe_slug>/team/<int:pk>/remove/", views_ops.team_remove, name="team_remove"),
 ]

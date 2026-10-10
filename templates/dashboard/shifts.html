@@ -1,0 +1,55 @@
+{% extends "dashboard/base.html" %}
+{% load cafe_tags %}
+{% block title %}Shifts{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Staff shifts</h1>
+  {% include "dashboard/_period_tabs.html" %}
+</div>
+{% if request.cafe.latitude is None %}
+<p class="notice">Set your café's map position in <a href="{% url 'dashboard:settings' request.cafe.slug %}">Details</a> so we can check staff are at the café when they clock in.</p>
+{% endif %}
+
+<section class="card">
+  <h2>On shift now</h2>
+  <ul class="list">
+    {% for s in on_shift %}
+    <li class="item-row"><span><strong>{{ s.user.first_name|default:s.user.username }}</strong> since {{ s.clock_in_at|time:"H:i" }}{% if s.clock_in_outside %} <span class="pill pill-bad">Away from café</span>{% endif %}</span><span class="muted">{{ s.duration|hours_minutes }}</span></li>
+    {% empty %}<li class="muted">Nobody is clocked in.</li>{% endfor %}
+  </ul>
+</section>
+
+<section class="card">
+  <h2>Hours worked</h2>
+  {% if workers %}
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th scope="col">Name</th><th scope="col" class="num">Shifts</th><th scope="col" class="num">Hours</th><th scope="col" class="num">Flagged</th></tr></thead>
+    <tbody>{% for w in workers %}
+      <tr><td>{{ w.user.first_name|default:w.user.username }}</td><td class="num">{{ w.shifts }}</td><td class="num">{{ w.hours|floatformat:1 }}</td><td class="num">{% if w.flagged %}<span class="bad">{{ w.flagged }}</span>{% else %}0{% endif %}</td></tr>
+    {% endfor %}</tbody>
+  </table>
+  </div>
+  {% else %}<p class="muted">No shifts in this period.</p>{% endif %}
+</section>
+
+{% if shifts %}
+<section class="card">
+  <h2>Every shift</h2>
+  <ul class="list">
+    {% for s in shifts %}
+    <li class="item-row shift-row">
+      <span>
+        <strong>{{ s.user.first_name|default:s.user.username }}</strong> · {{ s.clock_in_at|date:"D j M" }}, {{ s.clock_in_at|time:"H:i" }}–{% if s.clock_out_at %}{{ s.clock_out_at|time:"H:i" }}{% else %}now{% endif %}<br>
+        <span class="small-text muted">
+          In: <a href="https://www.openstreetmap.org/?mlat={{ s.clock_in_lat }}&amp;mlon={{ s.clock_in_lng }}#map=18/{{ s.clock_in_lat }}/{{ s.clock_in_lng }}" target="_blank" rel="noopener">{% if s.clock_in_distance_m is not None %}{{ s.clock_in_distance_m }} m from café{% else %}map{% endif %}</a>{% if s.clock_in_outside %} <span class="bad">(outside)</span>{% endif %}
+          {% if s.clock_out_at %}· Out: <a href="https://www.openstreetmap.org/?mlat={{ s.clock_out_lat }}&amp;mlon={{ s.clock_out_lng }}#map=18/{{ s.clock_out_lat }}/{{ s.clock_out_lng }}" target="_blank" rel="noopener">{% if s.clock_out_distance_m is not None %}{{ s.clock_out_distance_m }} m from café{% else %}map{% endif %}</a>{% if s.clock_out_outside %} <span class="bad">(outside)</span>{% endif %}{% endif %}
+        </span>
+      </span>
+      <span class="muted">{{ s.duration|hours_minutes }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

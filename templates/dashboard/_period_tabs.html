@@ -1,0 +1,3 @@
+<nav class="tabs" aria-label="Time period">
+  {% for key, info in periods.items %}<a href="?period={{ key }}" {% if key == period %}aria-current="page"{% endif %}>{{ info.0 }}</a>{% endfor %}
+</nav>
