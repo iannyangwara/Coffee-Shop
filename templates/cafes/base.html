@@ -25,10 +25,15 @@
         <a href="{% url 'cafes:home' cafe.slug %}" {% if request.resolver_match.url_name == 'home' %}aria-current="page"{% endif %}>Home</a>
         <a href="{% url 'cafes:menu' cafe.slug %}" {% if request.resolver_match.url_name == 'menu' %}aria-current="page"{% endif %}>Menu</a>
         <a href="{% url 'cafes:visit' cafe.slug %}" {% if request.resolver_match.url_name == 'visit' %}aria-current="page"{% endif %}>Visit</a>
+        {% if cafe.accepts_orders or basket_count %}<a class="basket-link" href="{% url 'cafes:basket' cafe.slug %}" {% if request.resolver_match.url_name == 'basket' %}aria-current="page"{% endif %} aria-label="Your basket, {{ basket_count }} item{{ basket_count|pluralize }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.4 11.2a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>{% if basket_count %}<span class="basket-count">{{ basket_count }}</span>{% endif %}</a>{% endif %}
       </nav>
     </div>
   </header>
 
+  {% if my_order and request.resolver_match.url_name != 'order_status' %}
+  <a class="order-banner" href="{% url 'cafes:order_status' cafe.slug my_order.token %}"><span class="wrap">Your order {{ my_order.code }}: <strong>{{ my_order.get_status_display }}</strong> · Track it</span></a>
+  {% endif %}
+  {% if messages %}<div class="wrap toast-wrap" role="status">{% for message in messages %}<p class="toast toast-{{ message.tags }}">{{ message }}{% if message.tags == 'success' and basket_count %} <a href="{% url 'cafes:basket' cafe.slug %}">View basket ({{ basket_count }})</a>{% endif %}</p>{% endfor %}</div>{% endif %}
   <main>{% block content %}{% endblock %}</main>
 
   <footer class="site-footer">

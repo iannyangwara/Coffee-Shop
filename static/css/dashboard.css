@@ -160,3 +160,29 @@ input[type=checkbox] { width: 20px; height: 20px; }
 @media (min-width: 640px) { .today-card { grid-template-columns: repeat(4, 1fr); } }
 .today-card .stat-value { font-size: 1.3rem; overflow-wrap: anywhere; }
 .item-row > .muted:last-child { white-space: nowrap; }
+
+/* --- Online orders board --- */
+.board { display: grid; gap: 14px; }
+@media (min-width: 760px) { .board { grid-template-columns: repeat(3, 1fr); align-items: start; } }
+.board-col { background: #efe9e3; border-radius: var(--radius); padding: 10px; }
+.board-col h2 { font-size: 1rem; display: flex; align-items: center; gap: 8px; margin: 2px 4px 10px; }
+.board-col .count { background: var(--card); border-radius: 999px; padding: 0 9px; font-size: .85rem; }
+.board-new h2 .count { background: var(--bad); color: #fff; }
+.board-ready h2 .count { background: var(--ok); color: #fff; }
+.board-empty { margin: 4px; font-size: .9rem; }
+.order-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+.board-new .order-card { border-left: 4px solid var(--bad); }
+.board-ready .order-card { border-left: 4px solid var(--ok); }
+.order-card-head { display: flex; justify-content: space-between; align-items: baseline; }
+.order-card .order-code { font-size: 1.35rem; font-weight: 800; letter-spacing: .08em; }
+.order-card p { margin: 4px 0; }
+.order-when { font-size: .9rem; font-weight: 600; }
+.order-when.is-later { color: var(--accent); }
+.order-lines { list-style: none; padding: 0; margin: 8px 0; border-top: 1px dashed var(--line); padding-top: 8px; }
+.order-lines li { margin-bottom: 6px; }
+.order-note { color: var(--accent); font-style: italic; font-size: .92rem; }
+.order-total { font-weight: 700; }
+.order-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.order-actions select { width: auto; flex: 1 1 110px; }
+.order-actions .btn { flex: 1 1 auto; }
+.order-alert { display: block; margin-bottom: 16px; color: var(--ink); text-decoration: none; }

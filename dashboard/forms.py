@@ -25,6 +25,7 @@ class CafeSettingsForm(forms.ModelForm):
             "cover_photo",
             "brand_colour",
             "clock_in_radius_m",
+            "accepts_orders",
             "is_published",
         ]
         widgets = {
@@ -71,6 +72,7 @@ class MenuItemForm(forms.ModelForm):
             "is_available",
             "is_featured",
             "is_vegetarian",
+            "asks_sugar",
             "position",
         ]
         widgets = {"description": forms.Textarea(attrs={"rows": 3}), "stock_image": forms.RadioSelect}

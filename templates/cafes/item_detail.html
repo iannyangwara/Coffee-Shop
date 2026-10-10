@@ -1,0 +1,86 @@
+{% extends "cafes/base.html" %}
+{% load cafe_tags %}
+{% block title %}{{ item.name }} · {{ cafe.name }}{% endblock %}
+{% block description %}{{ item.description|default:item.name }}{% endblock %}
+{% block content %}
+<div class="wrap section detail">
+  <p class="crumbs"><a href="{% url 'cafes:menu' cafe.slug %}#cat-{{ item.category_id }}">← {{ item.category.name }}</a></p>
+  <div class="detail-grid">
+    <div class="detail-media{% if not item.is_available %} is-unavailable{% endif %}">
+      {% if item.image_url %}<img src="{{ item.image_url }}" alt="{{ item.name }}" width="800" height="600">{% else %}<div class="detail-placeholder" aria-hidden="true">{{ item.name|slice:":1" }}</div>{% endif %}
+    </div>
+    <div class="detail-body">
+      <h1 class="detail-name">{{ item.name }}{% if item.is_vegetarian %} <span class="tag" title="Vegetarian">V</span>{% endif %}</h1>
+      <p class="detail-price">{{ item.price|money:cafe }}</p>
+      {% if item.description %}<p class="detail-desc">{{ item.description }}</p>{% endif %}
+
+      {% if not item.is_available %}
+      <p class="sold-out">Sold out today. Please check back tomorrow.</p>
+      {% elif not cafe.accepts_orders %}
+      <p class="muted">Order at the counter{% if cafe.phone %} or call <a href="tel:{{ cafe.phone }}">{{ cafe.phone }}</a>{% endif %}.</p>
+      {% elif not ordering %}
+      <p class="notice-soft">Online ordering opens again when we do. <a href="{% url 'cafes:visit' cafe.slug %}">See our hours</a>.</p>
+      {% else %}
+      <form method="post" class="order-form" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-error" role="alert">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}
+        {% if form.sugar %}
+        <fieldset class="choice-group">
+          <legend>Sugar</legend>
+          <div class="chips">{% for choice in form.sugar %}<label class="chip">{{ choice.tag }}<span>{{ choice.choice_label }}</span></label>{% endfor %}</div>
+          {% for e in form.sugar.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </fieldset>
+        {% endif %}
+        <div class="field">
+          <label for="{{ form.note.id_for_label }}">{{ form.note.label }} <span class="muted">(optional)</span></label>
+          {{ form.note }}
+          {% for e in form.note.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="add-row">
+          <div class="qty" data-qty>
+            <button type="button" data-step="-1" aria-label="One less">−</button>
+            <input type="number" name="quantity" value="{{ form.quantity.value|default:1 }}" min="1" max="20" inputmode="numeric" aria-label="Quantity">
+            <button type="button" data-step="1" aria-label="One more">+</button>
+          </div>
+          {% for e in form.quantity.errors %}<p class="field-error" style="flex-basis:100%">{{ e }}</p>{% endfor %}
+          <button type="submit" class="button add-button">Add to order · <span data-line-total data-price="{{ item.price }}" data-currency="{{ cafe.currency }}">{{ item.price|money:cafe }}</span></button>
+        </div>
+        <p class="muted small">Pay when you collect. No account needed.</p>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if more %}
+  <section class="more">
+    <h2>More {{ item.category.name|lower }}</h2>
+    <div class="item-grid">{% for item in more %}{% include "cafes/_item.html" %}{% endfor %}</div>
+  </section>
+  {% endif %}
+</div>
+<script>
+(() => {
+  const box = document.querySelector("[data-qty]");
+  if (!box) return;
+  const input = box.querySelector("input");
+  const total = document.querySelector("[data-line-total]");
+  const symbols = { USD: "$", EUR: "€", GBP: "£" };
+  const fmt = (n) => {
+    const t = Number.isInteger(n) ? n.toLocaleString("en") : n.toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const cur = total.dataset.currency;
+    return symbols[cur] ? symbols[cur] + t : cur + " " + t;
+  };
+  const update = () => {
+    const q = Math.min(20, Math.max(1, parseInt(input.value, 10) || 1));
+    total.textContent = fmt(Math.round(parseFloat(total.dataset.price) * 100) * q / 100);
+  };
+  box.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-step]");
+    if (!b) return;
+    input.value = Math.min(20, Math.max(1, (parseInt(input.value, 10) || 1) + parseInt(b.dataset.step, 10)));
+    update();
+  });
+  input.addEventListener("input", update);
+})();
+</script>
+{% endblock %}

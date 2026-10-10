@@ -3,6 +3,7 @@
 {% load cafe_tags %}
 {% block content %}
 <h1>Hello{% if user.first_name %}, {{ user.first_name }}{% endif %}</h1>
+{% if waiting_orders %}<a class="notice order-alert" href="{% url 'dashboard:orders' request.cafe.slug %}"><strong>{{ waiting_orders }} online order{{ waiting_orders|pluralize }}</strong> waiting. Open the orders screen →</a>{% endif %}
 {% if today %}
 <a class="card today-card" href="{% url 'dashboard:reports' request.cafe.slug %}?period=today">
   <span><span class="stat-label">Sales today</span><br><strong class="stat-value">{{ today.revenue|money:request.cafe }}</strong></span>

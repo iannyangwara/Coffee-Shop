@@ -1,6 +1,8 @@
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, render
 
+from ordering.services import Basket, latest_order
+
 from .models import Cafe, MenuCategory, MenuItem
 
 
@@ -13,9 +15,15 @@ def _published_cafe(slug):
     return get_object_or_404(Cafe.objects.prefetch_related("opening_hours", "closures"), slug=slug, is_published=True)
 
 
-def _base_context(cafe):
+def _base_context(request, cafe):
     today = cafe.local_now().date()
-    return {"cafe": cafe, "is_open": cafe.is_open_now(), "today_hours": cafe.hours_for(today)}
+    return {
+        "cafe": cafe,
+        "is_open": cafe.is_open_now(),
+        "today_hours": cafe.hours_for(today),
+        "basket_count": Basket(request, cafe).count(),
+        "my_order": latest_order(request, cafe),
+    }
 
 
 def cafe_home(request, cafe_slug):
@@ -24,7 +32,9 @@ def cafe_home(request, cafe_slug):
     featured = items.filter(is_featured=True)[:6]
     # A few pictures of things that aren't already in the favourites, for the "about" section.
     gallery = [i for i in items.filter(is_featured=False) if i.image_url][:4]
-    return render(request, "cafes/home.html", {**_base_context(cafe), "featured": featured, "gallery": gallery})
+    return render(
+        request, "cafes/home.html", {**_base_context(request, cafe), "featured": featured, "gallery": gallery}
+    )
 
 
 def cafe_menu(request, cafe_slug):
@@ -33,7 +43,7 @@ def cafe_menu(request, cafe_slug):
         Prefetch("items", queryset=MenuItem.objects.order_by("position", "id"))
     )
     categories = [c for c in categories if c.items.all()]
-    return render(request, "cafes/menu.html", {**_base_context(cafe), "categories": categories})
+    return render(request, "cafes/menu.html", {**_base_context(request, cafe), "categories": categories})
 
 
 def cafe_visit(request, cafe_slug):
@@ -44,7 +54,7 @@ def cafe_visit(request, cafe_slug):
         request,
         "cafes/visit.html",
         {
-            **_base_context(cafe),
+            **_base_context(request, cafe),
             "schedule": cafe.week_schedule(),
             "today_weekday": today.weekday(),
             "upcoming_closures": upcoming_closures,

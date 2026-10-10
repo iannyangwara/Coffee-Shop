@@ -1,0 +1,60 @@
+{% extends "cafes/base.html" %}
+{% load cafe_tags %}
+{% block title %}Your order · {{ cafe.name }}{% endblock %}
+{% block content %}
+<div class="wrap section narrow-page">
+  <h1 class="page-title">Your order</h1>
+  {% if lines %}
+  <div class="card basket">
+    <ul class="basket-lines">
+      {% for line in lines %}
+      <li class="basket-line{% if not line.item.is_available %} is-unavailable{% endif %}">
+        {% if line.item.image_url %}<img src="{{ line.item.image_url }}" alt="" class="basket-thumb">{% endif %}
+        <div class="basket-info">
+          <p class="basket-name">{{ line.item.name }}</p>
+          {% if line.sugar_label %}<p class="basket-extra">{{ line.sugar_label }}</p>{% endif %}
+          {% if line.note %}<p class="basket-extra">“{{ line.note }}”</p>{% endif %}
+          {% if not line.item.is_available %}<p class="sold-out">Just sold out, please remove</p>{% endif %}
+          <form method="post" action="{% url 'cafes:basket_update' cafe.slug %}" class="basket-qty">
+            {% csrf_token %}<input type="hidden" name="index" value="{{ line.index }}">
+            <button name="quantity" value="{{ line.quantity|add:'-1' }}" aria-label="One less {{ line.item.name }}">−</button>
+            <span aria-label="Quantity">{{ line.quantity }}</span>
+            <button name="quantity" value="{{ line.quantity|add:'1' }}" aria-label="One more {{ line.item.name }}">+</button>
+            <button name="quantity" value="0" class="link-remove">Remove</button>
+          </form>
+        </div>
+        <span class="basket-price">{{ line.line_total|money:cafe }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="basket-total"><span>Total</span><strong>{{ total|money:cafe }}</strong></p>
+    <p class="muted small">You pay at the counter when you collect.</p>
+  </div>
+
+  {% if ordering %}
+  <form method="post" class="card checkout" novalidate>
+    {% csrf_token %}
+    <h2>Pickup details</h2>
+    {% if form.non_field_errors %}<div class="form-error" role="alert">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}
+    {% for field in form %}
+    <div class="field">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+      {% for e in field.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="button wide">Place order · {{ total|money:cafe }}</button>
+  </form>
+  {% else %}
+  <p class="notice-soft">We're not taking online orders right now. <a href="{% url 'cafes:visit' cafe.slug %}">See our hours</a>.</p>
+  {% endif %}
+  <p class="center"><a href="{% url 'cafes:menu' cafe.slug %}">← Add something else</a></p>
+  {% else %}
+  <div class="card empty-basket">
+    <p>Your basket is empty.</p>
+    <a class="button" href="{% url 'cafes:menu' cafe.slug %}">Browse the menu</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

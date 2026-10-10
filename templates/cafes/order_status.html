@@ -1,0 +1,10 @@
+{% extends "cafes/base.html" %}
+{% load static %}
+{% block title %}Order {{ order.code }} · {{ cafe.name }}{% endblock %}
+{% block content %}
+<div class="wrap section narrow-page">
+  {% include "cafes/_order_progress.html" %}
+  <p class="center"><a href="{% url 'cafes:menu' cafe.slug %}">← Back to the menu</a></p>
+</div>
+<script src="{% static 'js/htmx.min.js' %}" defer></script>
+{% endblock %}

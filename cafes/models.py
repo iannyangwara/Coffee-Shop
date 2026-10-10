@@ -80,6 +80,11 @@ class Cafe(models.Model):
     brand_colour = models.CharField(max_length=7, default="#6b3e26", validators=[hex_colour])
 
     is_published = models.BooleanField(default=True, help_text="Unpublished cafés are hidden from the public.")
+    accepts_orders = models.BooleanField(
+        "take orders online",
+        default=True,
+        help_text="Customers can order from your website and pay when they collect.",
+    )
     clock_in_radius_m = models.PositiveIntegerField(
         "clock-in distance (metres)",
         default=150,
@@ -268,6 +273,11 @@ class MenuItem(models.Model):
     is_available = models.BooleanField(default=True, help_text="Untick when sold out; it stays on the menu greyed out.")
     is_featured = models.BooleanField(default=False, help_text="Shown on the café's home page.")
     is_vegetarian = models.BooleanField(default=False)
+    asks_sugar = models.BooleanField(
+        "offer a sugar choice",
+        default=False,
+        help_text="Customers ordering online pick no sugar, less, normal or extra.",
+    )
     position = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
