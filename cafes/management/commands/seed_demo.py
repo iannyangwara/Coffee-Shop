@@ -8,6 +8,8 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.db.models import F
+from django.utils import timezone
 
 from cafes.models import Cafe, MenuCategory, MenuItem, OpeningHours, StaffMembership
 from operations.models import Sale, SaleLine, Shift, distance_m
@@ -87,9 +89,10 @@ DEMO_CAFES = {
         email="hello@example.com",
         instagram="",
         address="12 Sample Street",
-        town="Demo Town",
-        latitude=Decimal("-0.420130"),
-        longitude=Decimal("36.947600"),
+        town="Lisbon",
+        latitude=Decimal("38.710700"),
+        longitude=Decimal("-9.137500"),
+        timezone="Europe/Lisbon",
     ),
     "hilltop-coffee": dict(
         name="Hilltop Coffee",
@@ -104,15 +107,21 @@ DEMO_CAFES = {
         email="hello@example.com",
         instagram="",
         address="45 Example Road",
-        town="Demo Town",
-        latitude=Decimal("-0.423900"),
-        longitude=Decimal("36.951200"),
+        town="Lisbon",
+        latitude=Decimal("38.711800"),
+        longitude=Decimal("-9.130100"),
+        timezone="Europe/Lisbon",
         accepts_orders=False,
         brand_colour="#2f5d50",
     ),
 }
 # Phone number the first version of the demo was seeded with; see _replace_old_contact_details.
 OLD_DEMO_PHONE = "+254 712 345 678"
+# Where earlier versions of the demo put their map pins; see _move_to_new_location.
+OLD_DEMO_PINS = {
+    "bean-house": (Decimal("-0.420130"), Decimal("36.947600")),
+    "hilltop-coffee": (Decimal("-0.423900"), Decimal("36.951200")),
+}
 
 
 class Command(BaseCommand):
@@ -152,6 +161,7 @@ class Command(BaseCommand):
         cafe, created = Cafe.objects.get_or_create(slug=slug, defaults=details)
         if not created:
             self._replace_old_contact_details(cafe, details)
+            self._move_to_new_location(cafe, details)
             self._add_missing_pictures(cafe)
             return cafe
         for day in OpeningHours.Weekday.values:
@@ -174,6 +184,37 @@ class Command(BaseCommand):
                 )
         self.stdout.write(self.style.SUCCESS(f"Created demo café at {cafe.get_absolute_url()}"))
         return cafe
+
+    def _move_to_new_location(self, cafe, details):
+        """
+        Move a demo café from its old map pin to the current one, only while it's still on the
+        old pin. Past sales and shifts keep the same local clock times in the new timezone, and
+        demo shift locations move with the café so they stay next to it on the map.
+        """
+        if (cafe.latitude, cafe.longitude) != OLD_DEMO_PINS.get(cafe.slug):
+            return
+        now = timezone.now()
+        old_offset = now.astimezone(cafe.tz).utcoffset()
+        dlat = details["latitude"] - cafe.latitude
+        dlng = details["longitude"] - cafe.longitude
+        for field in ["latitude", "longitude", "timezone", "town"]:
+            setattr(cafe, field, details[field])
+        cafe.save()
+        shift = old_offset - now.astimezone(cafe.tz).utcoffset()
+        Sale.objects.filter(cafe=cafe).update(sold_at=F("sold_at") + shift)
+        Shift.objects.filter(cafe=cafe).update(
+            clock_in_at=F("clock_in_at") + shift,
+            clock_out_at=F("clock_out_at") + shift,
+            clock_in_lat=F("clock_in_lat") + dlat,
+            clock_in_lng=F("clock_in_lng") + dlng,
+            clock_out_lat=F("clock_out_lat") + dlat,
+            clock_out_lng=F("clock_out_lng") + dlng,
+        )
+        # Nothing may end up in the future after the move.
+        Sale.objects.filter(cafe=cafe, sold_at__gt=now).update(sold_at=now)
+        Shift.objects.filter(cafe=cafe, clock_out_at__gt=now).update(clock_out_at=now)
+        Shift.objects.filter(cafe=cafe, clock_in_at__gt=now).update(clock_in_at=now)
+        self.stdout.write(f"Moved {cafe.name} to {cafe.town}.")
 
     def _replace_old_contact_details(self, cafe, details):
         """

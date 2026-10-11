@@ -326,9 +326,59 @@ class DemoSeedTests(TestCase):
         old = Cafe.objects.create(slug="bean-house", name="Bean House", phone="+254 712 345 678", town="Nyeri")
         self.seed()
         old.refresh_from_db()
-        self.assertEqual((old.phone, old.town), ("123456789", "Demo Town"))
+        self.assertEqual((old.phone, old.town), ("123456789", "Lisbon"))
         old.phone, old.town = "555 0100", "Owner's town"
         old.save()
         self.seed()
         old.refresh_from_db()
         self.assertEqual((old.phone, old.town), ("555 0100", "Owner's town"))
+
+    def test_demo_cafes_are_in_lisbon(self):
+        self.seed()
+        for cafe in Cafe.objects.all():
+            with self.subTest(cafe.slug):
+                self.assertEqual((cafe.town, cafe.timezone), ("Lisbon", "Europe/Lisbon"))
+                self.assertAlmostEqual(float(cafe.latitude), 38.71, places=1)
+
+    def test_old_demo_pin_moves_to_lisbon_keeping_local_times(self):
+        import zoneinfo
+
+        nairobi = zoneinfo.ZoneInfo("Africa/Nairobi")
+        cafe = Cafe.objects.create(
+            slug="bean-house",
+            name="Bean House",
+            timezone="Africa/Nairobi",
+            town="Demo Town",
+            latitude=Decimal("-0.420130"),
+            longitude=Decimal("36.947600"),
+        )
+        yesterday = timezone.now().astimezone(nairobi) - dt.timedelta(days=1)
+        sold_at = yesterday.replace(hour=8, minute=30, second=0, microsecond=0)
+        sale = Sale.objects.create(cafe=cafe, sold_at=sold_at)
+        worker = make_user("worker", cafe, role=StaffMembership.Role.STAFF)
+        shift = Shift.objects.create(
+            cafe=cafe,
+            user=worker,
+            clock_in_at=sold_at,
+            clock_out_at=sold_at + dt.timedelta(hours=8),
+            clock_in_lat=Decimal("-0.420100"),
+            clock_in_lng=Decimal("36.947700"),
+            clock_out_lat=Decimal("-0.420100"),
+            clock_out_lng=Decimal("36.947700"),
+        )
+        late = Sale.objects.create(cafe=cafe, sold_at=timezone.now() - dt.timedelta(minutes=5))
+        self.seed()
+        cafe.refresh_from_db()
+        sale.refresh_from_db()
+        shift.refresh_from_db()
+        late.refresh_from_db()
+        self.assertEqual((cafe.town, cafe.timezone), ("Lisbon", "Europe/Lisbon"))
+        self.assertEqual(sale.sold_at.astimezone(cafe.tz).strftime("%H:%M"), "08:30")
+        self.assertEqual(shift.clock_in_at.astimezone(cafe.tz).strftime("%H:%M"), "08:30")
+        self.assertLess(shift.clock_in_distance_m or 0, 50)
+        self.assertLess(distance_m(shift.clock_in_lat, shift.clock_in_lng, cafe.latitude, cafe.longitude), 50)
+        self.assertLessEqual(late.sold_at, timezone.now())
+        # Moving again does nothing: the café is no longer on the old pin.
+        self.seed()
+        sale.refresh_from_db()
+        self.assertEqual(sale.sold_at.astimezone(cafe.tz).strftime("%H:%M"), "08:30")
