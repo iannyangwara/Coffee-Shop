@@ -71,6 +71,49 @@ POPULARITY = {
 HOURLY = {7: 6, 8: 10, 9: 8, 10: 5, 11: 4, 12: 6, 13: 6, 14: 3, 15: 3, 16: 3, 17: 2, 18: 1}
 DEMO_DAYS = 30
 
+# Made-up details only: these cafés are for showing the platform, so nothing here
+# should look like a real business, number or address.
+DEMO_CAFES = {
+    "bean-house": dict(
+        name="Bean House",
+        tagline="Fresh coffee and home baking in the heart of town",
+        about=(
+            "Bean House is a demo café showing what your own website could look like: "
+            "your menu with prices and pictures, your hours, where to find you, and online ordering.\n\n"
+            "Everything on this page is made up."
+        ),
+        phone="123456789",
+        whatsapp="",
+        email="hello@example.com",
+        instagram="",
+        address="12 Sample Street",
+        town="Demo Town",
+        latitude=Decimal("-0.420130"),
+        longitude=Decimal("36.947600"),
+    ),
+    "hilltop-coffee": dict(
+        name="Hilltop Coffee",
+        tagline="See our menu and prices, then come and find us",
+        about=(
+            "Hilltop Coffee is a demo of a menu-only website: customers can browse the menu and prices, "
+            "check the opening hours and find the café on the map, without ordering online.\n\n"
+            "Everything on this page is made up."
+        ),
+        phone="123456789",
+        whatsapp="",
+        email="hello@example.com",
+        instagram="",
+        address="45 Example Road",
+        town="Demo Town",
+        latitude=Decimal("-0.423900"),
+        longitude=Decimal("36.951200"),
+        accepts_orders=False,
+        brand_colour="#2f5d50",
+    ),
+}
+# Phone number the first version of the demo was seeded with; see _replace_old_contact_details.
+OLD_DEMO_PHONE = "+254 712 345 678"
+
 
 class Command(BaseCommand):
     help = "Create the 'Bean House' demo café with a menu, hours and an owner login."
@@ -85,63 +128,65 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, owner_username, owner_password, **options):
-        cafe, created = Cafe.objects.get_or_create(
-            slug="bean-house",
-            defaults=dict(
-                name="Bean House",
-                tagline="Fresh coffee and home baking in the heart of town",
-                about=(
-                    "Bean House is a family-run café serving locally grown coffee, "
-                    "fresh bakes and a proper breakfast.\n\nPull up a chair, the Wi-Fi is free."
-                ),
-                phone="+254 712 345 678",
-                whatsapp="254712345678",
-                email="hello@beanhouse.example",
-                instagram="beanhouse",
-                address="Kenyatta Avenue, opposite the market",
-                town="Nyeri",
-                latitude=Decimal("-0.420130"),
-                longitude=Decimal("36.947600"),
-            ),
-        )
-        if not created:
-            self.stdout.write("Demo café already exists; leaving its menu as it is.")
-            self._add_missing_pictures(cafe)
-        else:
-            for day in OpeningHours.Weekday.values:
-                if day == OpeningHours.Weekday.SUNDAY:
-                    OpeningHours.objects.create(cafe=cafe, weekday=day, opens=dt.time(9), closes=dt.time(14))
-                else:
-                    OpeningHours.objects.create(cafe=cafe, weekday=day, opens=dt.time(7), closes=dt.time(19))
-            for position, (category_name, items) in enumerate(MENU.items()):
-                category = MenuCategory.objects.create(cafe=cafe, name=category_name, position=position)
-                for item_position, (name, description, price, featured, picture) in enumerate(items):
-                    MenuItem.objects.create(
-                        category=category,
-                        name=name,
-                        description=description,
-                        price=Decimal(price),
-                        is_featured=featured,
-                        stock_image=picture,
-                        asks_sugar=name in SUGAR_CHOICE,
-                        position=item_position,
-                    )
-            self.stdout.write(self.style.SUCCESS(f"Created demo café at {cafe.get_absolute_url()}"))
-
         User = get_user_model()
         user = User.objects.filter(username=owner_username).first()
-        if user is None:
-            if not owner_password:
-                self.stderr.write("No owner login created: pass --owner-password or set DEMO_OWNER_PASSWORD.")
-                return
+        if user is None and owner_password:
             user = User.objects.create_user(owner_username, password=owner_password, first_name="Demo")
             self.stdout.write(self.style.SUCCESS(f"Created owner login '{owner_username}'."))
-        StaffMembership.objects.get_or_create(user=user, cafe=cafe, defaults={"role": StaffMembership.Role.OWNER})
-        self._add_missing_costs(cafe)
-        self._offer_sugar_choice(cafe)
-        if not Sale.objects.filter(cafe=cafe).exists():
-            self._add_demo_sales(cafe, user)
-        self._add_demo_barista(cafe)
+
+        for slug, details in DEMO_CAFES.items():
+            cafe = self._demo_cafe(slug, details)
+            if user is None:
+                continue
+            StaffMembership.objects.get_or_create(user=user, cafe=cafe, defaults={"role": StaffMembership.Role.OWNER})
+            self._add_missing_costs(cafe)
+            self._offer_sugar_choice(cafe)
+            if not Sale.objects.filter(cafe=cafe).exists():
+                self._add_demo_sales(cafe, user)
+        if user is None:
+            self.stderr.write("No owner login created: pass --owner-password or set DEMO_OWNER_PASSWORD.")
+            return
+        self._add_demo_barista(Cafe.objects.get(slug="bean-house"))
+
+    def _demo_cafe(self, slug, details):
+        cafe, created = Cafe.objects.get_or_create(slug=slug, defaults=details)
+        if not created:
+            self._replace_old_contact_details(cafe, details)
+            self._add_missing_pictures(cafe)
+            return cafe
+        for day in OpeningHours.Weekday.values:
+            if day == OpeningHours.Weekday.SUNDAY:
+                OpeningHours.objects.create(cafe=cafe, weekday=day, opens=dt.time(9), closes=dt.time(14))
+            else:
+                OpeningHours.objects.create(cafe=cafe, weekday=day, opens=dt.time(7), closes=dt.time(19))
+        for position, (category_name, items) in enumerate(MENU.items()):
+            category = MenuCategory.objects.create(cafe=cafe, name=category_name, position=position)
+            for item_position, (name, description, price, featured, picture) in enumerate(items):
+                MenuItem.objects.create(
+                    category=category,
+                    name=name,
+                    description=description,
+                    price=Decimal(price),
+                    is_featured=featured,
+                    stock_image=picture,
+                    asks_sugar=name in SUGAR_CHOICE,
+                    position=item_position,
+                )
+        self.stdout.write(self.style.SUCCESS(f"Created demo café at {cafe.get_absolute_url()}"))
+        return cafe
+
+    def _replace_old_contact_details(self, cafe, details):
+        """
+        The first demo café was seeded with realistic-looking contact details. Swap them for
+        obviously made-up ones, but only while they're still the originals, so an owner's own
+        edits are never overwritten.
+        """
+        if cafe.phone != OLD_DEMO_PHONE:
+            return
+        for field in ["tagline", "about", "phone", "whatsapp", "email", "instagram", "address", "town"]:
+            setattr(cafe, field, details[field])
+        cafe.save()
+        self.stdout.write(f"Replaced {cafe.name}'s contact details with made-up demo ones.")
 
     def _add_missing_pictures(self, cafe):
         """Give demo items created before pictures existed their built-in picture (never overrides a choice)."""

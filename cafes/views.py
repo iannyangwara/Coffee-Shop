@@ -7,7 +7,7 @@ from .models import Cafe, MenuCategory, MenuItem
 
 
 def platform_home(request):
-    cafes = Cafe.objects.filter(is_published=True).only("name", "slug", "tagline", "town")
+    cafes = Cafe.objects.filter(is_published=True).only("name", "slug", "tagline", "town", "accepts_orders")
     return render(request, "cafes/platform_home.html", {"cafes": cafes})
 
 

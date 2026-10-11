@@ -144,6 +144,7 @@ p { margin: 0 0 1em; }
 /* Platform home */
 .cafe-list { list-style: none; padding: 0; display: grid; gap: 12px; }
 .cafe-list li { background: var(--card); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+.cafe-kind { display: inline-block; font-size: .75rem; font-weight: 700; background: #f3ebe2; color: var(--brand); border-radius: 999px; padding: 2px 9px; margin-left: 4px; }
 
 /* Footer */
 .site-footer { background: #1f1712; color: #e9dfd5; padding: 44px 0 36px; font-size: .95rem; }

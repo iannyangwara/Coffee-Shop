@@ -13,7 +13,7 @@
     <p class="muted">Menus, opening hours and directions for local cafés.</p>
     <ul class="cafe-list">
       {% for cafe in cafes %}
-      <li><a href="{{ cafe.get_absolute_url }}"><strong>{{ cafe.name }}</strong>{% if cafe.town %} · {{ cafe.town }}{% endif %}</a>{% if cafe.tagline %}<div class="muted">{{ cafe.tagline }}</div>{% endif %}</li>
+      <li><a href="{{ cafe.get_absolute_url }}"><strong>{{ cafe.name }}</strong>{% if cafe.town %} · {{ cafe.town }}{% endif %}</a> <span class="cafe-kind">{% if cafe.accepts_orders %}Order online{% else %}Menu &amp; location{% endif %}</span>{% if cafe.tagline %}<div class="muted">{{ cafe.tagline }}</div>{% endif %}</li>
       {% empty %}
       <li class="muted">No cafés yet.</li>
       {% endfor %}
