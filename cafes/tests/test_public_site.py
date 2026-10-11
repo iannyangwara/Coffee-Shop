@@ -89,8 +89,9 @@ class SeedDemoTests(TestCase):
         from cafes.models import MenuItem
 
         call_command("seed_demo", stdout=io.StringIO(), stderr=io.StringIO())
-        MenuItem.objects.filter(name="Espresso").update(stock_image="")
-        MenuItem.objects.filter(name="Cappuccino").update(stock_image="latte")
+        items = MenuItem.objects.filter(category__cafe__slug="bean-house")
+        items.filter(name="Espresso").update(stock_image="")
+        items.filter(name="Cappuccino").update(stock_image="latte")
         call_command("seed_demo", stdout=io.StringIO(), stderr=io.StringIO())
-        self.assertEqual(MenuItem.objects.get(name="Espresso").stock_image, "espresso")
-        self.assertEqual(MenuItem.objects.get(name="Cappuccino").stock_image, "latte")
+        self.assertEqual(items.get(name="Espresso").stock_image, "espresso")
+        self.assertEqual(items.get(name="Cappuccino").stock_image, "latte")

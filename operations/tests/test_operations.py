@@ -297,3 +297,38 @@ class DemoSeedTests(TestCase):
         self.assertTrue(Shift.objects.filter(cafe=cafe, user__username="demo-barista").exists())
         call_command("seed_demo", owner_password="demo-pass-for-tests-1", stdout=StringIO())
         self.assertEqual(Sale.objects.filter(cafe=cafe).count(), sales)
+
+    def seed(self):
+        call_command("seed_demo", owner_password="demo-pass-for-tests-1", stdout=StringIO())
+
+    def test_demo_cafes_use_made_up_details(self):
+        self.seed()
+        for cafe in Cafe.objects.all():
+            with self.subTest(cafe.slug):
+                self.assertEqual(cafe.phone, "123456789")
+                self.assertEqual((cafe.whatsapp, cafe.instagram), ("", ""))
+                self.assertIn("made up", cafe.about)
+
+    def test_menu_only_demo_shows_menu_prices_and_map_but_no_ordering(self):
+        self.seed()
+        cafe = Cafe.objects.get(slug="hilltop-coffee")
+        self.assertFalse(cafe.accepts_orders)
+        menu = self.client.get(f"/{cafe.slug}/menu/")
+        self.assertContains(menu, "Cappuccino")
+        self.assertContains(menu, "$3.50")
+        self.assertNotContains(menu, "item-cta")
+        self.assertNotContains(menu, "basket-link")
+        self.assertContains(self.client.get(f"/{cafe.slug}/visit/"), "Get directions")
+        item = cafe.menu_categories.first().items.first()
+        self.assertContains(self.client.get(f"/{cafe.slug}/menu/{item.pk}/"), "Order at the counter")
+
+    def test_old_demo_details_are_replaced_but_owner_edits_are_kept(self):
+        old = Cafe.objects.create(slug="bean-house", name="Bean House", phone="+254 712 345 678", town="Nyeri")
+        self.seed()
+        old.refresh_from_db()
+        self.assertEqual((old.phone, old.town), ("123456789", "Demo Town"))
+        old.phone, old.town = "555 0100", "Owner's town"
+        old.save()
+        self.seed()
+        old.refresh_from_db()
+        self.assertEqual((old.phone, old.town), ("555 0100", "Owner's town"))
