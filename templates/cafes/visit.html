@@ -1,7 +1,7 @@
 {% extends "cafes/base.html" %}
 {% block title %}Visit · {{ cafe.name }}{% endblock %}
 {% block content %}
-{% include "cafes/_page_head.html" with heading="Visit us" subheading=cafe.address %}
+{% include "cafes/_page_head.html" with eyebrow=cafe.name heading="Visit" subheading=cafe.address %}
 <section class="wrap section visit-grid">
   <div class="card">
     <h2>Opening hours</h2>

@@ -65,7 +65,8 @@ class PictureTests(TestCase):
         item = make_item(self.cafe, "Plain")
         self.assertEqual(item.image_url, "")
         response = self.client.get(reverse("cafes:menu", args=["bean-house"]))
-        self.assertContains(response, "no-image")
+        self.assertContains(response, "Plain")
+        self.assertNotContains(response, "menu-thumb")
 
     def test_default_cover_when_none_uploaded(self):
         self.assertEqual(self.cafe.cover_url, "/static/cafes/stock/cover.svg")

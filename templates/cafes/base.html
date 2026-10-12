@@ -10,16 +10,22 @@
   <meta name="theme-color" content="{{ cafe.brand_colour }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
   <style>:root { --brand: {{ cafe.brand_colour }}; }</style>
 </head>
 <body>
+  <div class="topbar">
+    <div class="wrap topbar-inner">
+      <span><span class="topbar-dot{% if is_open %} is-open{% endif %}" aria-hidden="true"></span>{% if is_open %}Open now{% else %}Closed now{% endif %}{% if today_hours %} · Today {{ today_hours.opens|time:"g:i A" }} – {{ today_hours.closes|time:"g:i A" }}{% endif %}</span>
+      {% if cafe.address %}<a href="{% url 'cafes:visit' cafe.slug %}" class="topbar-address">{{ cafe.address }}{% if cafe.town %}, {{ cafe.town }}{% endif %}</a>{% endif %}
+    </div>
+  </div>
   <header class="site-header">
     <div class="wrap header-inner">
       <a class="brand" href="{% url 'cafes:home' cafe.slug %}">
-        {% if cafe.logo %}<img src="{{ cafe.logo.url }}" alt="" class="brand-logo">{% else %}<span class="brand-mark" aria-hidden="true">{{ cafe.name|slice:":1" }}</span>{% endif %}
-        <span>{{ cafe.name }}</span>
+        {% if cafe.logo %}<img src="{{ cafe.logo.url }}" alt="" class="brand-logo">{% endif %}
+        <span class="brand-word">{{ cafe.name }}</span>
       </a>
       <nav class="site-nav" aria-label="Main">
         <a href="{% url 'cafes:home' cafe.slug %}" {% if request.resolver_match.url_name == 'home' %}aria-current="page"{% endif %}>Home</a>
@@ -39,8 +45,10 @@
   <footer class="site-footer">
     <div class="wrap footer-grid">
       <div>
-        <p class="footer-name">{{ cafe.name }}</p>
-        {% if cafe.tagline %}<p class="footer-muted">{{ cafe.tagline }}</p>{% endif %}
+        <p class="footer-heading">Hours</p>
+        <ul class="plain footer-muted footer-hours">
+          {% for day_name, hours in cafe.week_schedule %}<li><span>{{ day_name|slice:":3" }}</span> <span>{% if hours and not hours.is_closed %}{{ hours.opens|time:"g:i A" }} – {{ hours.closes|time:"g:i A" }}{% else %}Closed{% endif %}</span></li>{% endfor %}
+        </ul>
       </div>
       <div>
         <p class="footer-heading">Find us</p>
@@ -57,6 +65,7 @@
         </ul>
       </div>
     </div>
+    <div class="wrap footer-word" style="--chars: {{ cafe.name|length }}" aria-hidden="true">{{ cafe.name }}</div>
   </footer>
 </body>
 </html>

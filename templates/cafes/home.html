@@ -2,68 +2,63 @@
 {% block content %}
 <section class="hero" style="--cover: url('{{ cafe.cover_url }}')">
   <div class="wrap hero-inner">
-    {% include "cafes/_open_pill.html" %}
-    <h1>{{ cafe.name }}</h1>
+    <h1 class="hero-word">{{ cafe.name }}</h1>
     {% if cafe.tagline %}<p class="hero-tagline">{{ cafe.tagline }}</p>{% endif %}
     <div class="hero-actions">
-      <a class="button" href="{% url 'cafes:menu' cafe.slug %}">See the menu</a>
-      <a class="button button-ghost" href="{% url 'cafes:visit' cafe.slug %}">Hours &amp; directions</a>
+      <a class="button button-light" href="{% url 'cafes:menu' cafe.slug %}">{% if cafe.accepts_orders %}Menu &amp; order{% else %}See the menu{% endif %}</a>
+      <a class="button button-ghost" href="{% url 'cafes:visit' cafe.slug %}">Find us</a>
     </div>
   </div>
 </section>
 
-<section class="wrap info-strip" aria-label="Quick info">
-  <a class="info-card" href="{% url 'cafes:visit' cafe.slug %}">
-    <span class="info-label">Today</span>
-    <span class="info-value">{% if today_hours %}{{ today_hours.opens|time:"g:i A" }} – {{ today_hours.closes|time:"g:i A" }}{% else %}Closed{% endif %}</span>
-  </a>
-  {% if cafe.address %}
-  <a class="info-card" href="{% url 'cafes:visit' cafe.slug %}">
-    <span class="info-label">Find us</span>
-    <span class="info-value">{{ cafe.address }}{% if cafe.town %}, {{ cafe.town }}{% endif %}</span>
-  </a>
-  {% endif %}
-  {% if cafe.phone %}
-  <a class="info-card" href="tel:{{ cafe.phone }}">
-    <span class="info-label">Call us</span>
-    <span class="info-value">{{ cafe.phone }}</span>
-  </a>
-  {% endif %}
+{% if categories %}
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    {% for i in "12" %}<span>{% for category in categories %}{{ category }} <span class="ticker-sep">✦</span> {% endfor %}{% if cafe.accepts_orders %}Order ahead <span class="ticker-sep">✦</span> {% endif %}</span>{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if cafe.about %}
+<section class="wrap section intro">
+  <p class="eyebrow">Welcome to {{ cafe.name }}</p>
+  <div class="statement">{{ cafe.about|linebreaks }}</div>
 </section>
+{% endif %}
 
 {% if featured %}
-<section class="wrap section">
-  <div class="section-head">
-    <p class="eyebrow">From our counter</p>
-    <h2>Customer favourites</h2>
+<section class="wrap section favourites">
+  <div class="section-head split-head">
+    <h2>Favourites</h2>
+    <a class="text-link" href="{% url 'cafes:menu' cafe.slug %}">Full menu →</a>
   </div>
   <div class="item-grid">
     {% for item in featured %}{% include "cafes/_item.html" %}{% endfor %}
   </div>
-  <p class="center"><a class="button button-outline" href="{% url 'cafes:menu' cafe.slug %}">View the full menu</a></p>
 </section>
 {% endif %}
 
-{% if cafe.about %}
-<section class="about-band">
-  <div class="wrap about-grid">
-    <div>
-      <p class="eyebrow">Our story</p>
-      <h2>About {{ cafe.name }}</h2>
-      <div class="prose">{{ cafe.about|linebreaks }}</div>
+<section class="split">
+  <div class="split-media">
+    {% if gallery %}<img src="{{ gallery.0.image_url }}" alt="" loading="lazy">{% else %}<img src="{{ cafe.cover_url }}" alt="" loading="lazy">{% endif %}
+  </div>
+  <div class="split-body">
+    <p class="eyebrow">Visit</p>
+    <h2>Come by for a coffee</h2>
+    {% if cafe.address %}<p class="split-lead">{{ cafe.address }}{% if cafe.town %}<br>{{ cafe.town }}{% endif %}</p>{% endif %}
+    <p class="muted">{% if today_hours %}Open today {{ today_hours.opens|time:"g:i A" }} – {{ today_hours.closes|time:"g:i A" }}{% else %}Closed today{% endif %}</p>
+    <div class="hero-actions">
+      <a class="button" href="{% url 'cafes:visit' cafe.slug %}">Hours &amp; directions</a>
+      {% if cafe.phone %}<a class="button button-outline" href="tel:{{ cafe.phone }}">Call {{ cafe.phone }}</a>{% endif %}
     </div>
-    {% if gallery %}
-    <div class="gallery" aria-hidden="true">
-      {% for item in gallery %}<img src="{{ item.image_url }}" alt="" loading="lazy">{% endfor %}
-    </div>
-    {% endif %}
+  </div>
+</section>
+
+{% if gallery|length > 1 %}
+<section class="wrap section">
+  <div class="gallery" aria-hidden="true">
+    {% for item in gallery %}<img src="{{ item.image_url }}" alt="" loading="lazy">{% endfor %}
   </div>
 </section>
 {% endif %}
-
-<section class="wrap cta">
-  <h2>Come say hello</h2>
-  <p class="muted">Pull up a chair or grab something to go.</p>
-  <a class="button" href="{% url 'cafes:visit' cafe.slug %}">Get directions</a>
-</section>
 {% endblock %}

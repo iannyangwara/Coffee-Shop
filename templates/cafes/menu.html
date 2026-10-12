@@ -1,7 +1,11 @@
 {% extends "cafes/base.html" %}
 {% block title %}Menu · {{ cafe.name }}{% endblock %}
 {% block content %}
-{% include "cafes/_page_head.html" with heading="Our menu" subheading="Made fresh, served with care." %}
+{% if cafe.accepts_orders %}
+{% include "cafes/_page_head.html" with eyebrow=cafe.name heading="Menu" subheading="Tap anything to see more, or order ahead and pay when you collect." %}
+{% else %}
+{% include "cafes/_page_head.html" with eyebrow=cafe.name heading="Menu" subheading="Made fresh, served with care." %}
+{% endif %}
 {% if categories|length > 1 %}
 <nav class="category-jump" aria-label="Menu sections">
   <div class="wrap category-jump-inner">
@@ -9,15 +13,15 @@
   </div>
 </nav>
 {% endif %}
-<div class="wrap section">
+<div class="wrap section menu-page">
   {% for category in categories %}
   <section class="menu-category" id="cat-{{ category.id }}">
-    <div class="section-head left">
+    <div class="menu-category-head">
       <h2>{{ category.name }}</h2>
       {% if category.description %}<p class="muted">{{ category.description }}</p>{% endif %}
     </div>
-    <div class="item-list">
-      {% for item in category.items.all %}{% include "cafes/_item.html" %}{% endfor %}
+    <div class="menu-rows">
+      {% for item in category.items.all %}{% include "cafes/_menu_row.html" %}{% endfor %}
     </div>
   </section>
   {% empty %}

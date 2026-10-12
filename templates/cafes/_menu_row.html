@@ -1,0 +1,8 @@
+{% load cafe_tags %}<a href="{% url 'cafes:item' cafe.slug item.pk %}" class="menu-row{% if not item.is_available %} is-unavailable{% endif %}">
+  {% if item.image_url %}<img src="{{ item.image_url }}" alt="" class="menu-thumb" loading="lazy" width="72" height="72">{% endif %}
+  <span class="menu-text">
+    <span class="menu-line"><span class="menu-name">{{ item.name }}{% if item.is_vegetarian %} <span class="tag" title="Vegetarian">V</span>{% endif %}</span><span class="menu-dots" aria-hidden="true"></span><span class="menu-price">{{ item.price|money:cafe }}</span></span>
+    {% if item.description %}<span class="menu-desc">{{ item.description }}</span>{% endif %}
+    {% if not item.is_available %}<span class="sold-out">Sold out today</span>{% elif cafe.accepts_orders %}<span class="menu-add">Add <span aria-hidden="true">+</span></span>{% endif %}
+  </span>
+</a>
