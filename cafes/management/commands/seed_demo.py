@@ -113,6 +113,7 @@ DEMO_CAFES = {
         timezone="Europe/Lisbon",
         accepts_orders=False,
         brand_colour="#2f5d50",
+        stock_cover="terrace",
     ),
 }
 # Phone number the first version of the demo was seeded with; see _replace_old_contact_details.
