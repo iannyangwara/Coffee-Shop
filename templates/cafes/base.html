@@ -13,6 +13,12 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
   <style>:root { --brand: {{ cafe.brand_colour }}; }</style>
+  <script>
+    document.documentElement.classList.add("js");
+    // If the motion script never loads, show everything rather than leaving sections hidden.
+    setTimeout(function () { if (!window.cafeMotion) document.documentElement.classList.remove("js"); }, 3000);
+  </script>
+  <script src="{% static 'js/site.js' %}" defer></script>
 </head>
 <body>
   <div class="topbar">
@@ -43,7 +49,7 @@
   <main>{% block content %}{% endblock %}</main>
 
   <footer class="site-footer">
-    <div class="wrap footer-grid">
+    <div class="wrap footer-grid" data-reveal>
       <div>
         <p class="footer-heading">Hours</p>
         <ul class="plain footer-muted footer-hours">
@@ -65,7 +71,7 @@
         </ul>
       </div>
     </div>
-    <div class="wrap footer-word" style="--chars: {{ cafe.name|length }}" aria-hidden="true">{{ cafe.name }}</div>
+    <div class="wrap footer-word" style="--chars: {{ cafe.name|length }}" aria-hidden="true" data-reveal>{% for letter in cafe.name %}<span style="--i: {{ forloop.counter0 }}">{{ letter }}</span>{% endfor %}</div>
   </footer>
 </body>
 </html>

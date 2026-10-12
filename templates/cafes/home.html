@@ -1,8 +1,9 @@
 {% extends "cafes/base.html" %}
 {% block content %}
-<section class="hero" style="--cover: url('{{ cafe.cover_url }}')">
+<section class="hero">
+  <div class="hero-bg" style="--cover: url('{{ cafe.cover_url }}')" aria-hidden="true"></div>
   <div class="wrap hero-inner">
-    <h1 class="hero-word">{{ cafe.name }}</h1>
+    <h1 class="hero-word" aria-label="{{ cafe.name }}">{% for word in cafe.name.split %}<span class="hero-line" aria-hidden="true"><span style="--i: {{ forloop.counter0 }}">{{ word }}</span></span> {% endfor %}</h1>
     {% if cafe.tagline %}<p class="hero-tagline">{{ cafe.tagline }}</p>{% endif %}
     <div class="hero-actions">
       <a class="button button-light" href="{% url 'cafes:menu' cafe.slug %}">{% if cafe.accepts_orders %}Menu &amp; order{% else %}See the menu{% endif %}</a>
@@ -20,7 +21,7 @@
 {% endif %}
 
 {% if cafe.about %}
-<section class="wrap section intro">
+<section class="wrap section intro" data-reveal>
   <p class="eyebrow">Welcome to {{ cafe.name }}</p>
   <div class="statement">{{ cafe.about|linebreaks }}</div>
 </section>
@@ -28,17 +29,17 @@
 
 {% if featured %}
 <section class="wrap section favourites">
-  <div class="section-head split-head">
+  <div class="section-head split-head" data-reveal>
     <h2>Favourites</h2>
     <a class="text-link" href="{% url 'cafes:menu' cafe.slug %}">Full menu →</a>
   </div>
-  <div class="item-grid">
+  <div class="item-grid" data-reveal="stagger">
     {% for item in featured %}{% include "cafes/_item.html" %}{% endfor %}
   </div>
 </section>
 {% endif %}
 
-<section class="split">
+<section class="split" data-reveal>
   <div class="split-media">
     {% if gallery %}<img src="{{ gallery.0.image_url }}" alt="" loading="lazy">{% else %}<img src="{{ cafe.cover_url }}" alt="" loading="lazy">{% endif %}
   </div>
@@ -56,7 +57,7 @@
 
 {% if gallery|length > 1 %}
 <section class="wrap section">
-  <div class="gallery" aria-hidden="true">
+  <div class="gallery" aria-hidden="true" data-reveal="stagger">
     {% for item in gallery %}<img src="{{ item.image_url }}" alt="" loading="lazy">{% endfor %}
   </div>
 </section>

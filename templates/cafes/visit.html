@@ -2,7 +2,7 @@
 {% block title %}Visit · {{ cafe.name }}{% endblock %}
 {% block content %}
 {% include "cafes/_page_head.html" with eyebrow=cafe.name heading="Visit" subheading=cafe.address %}
-<section class="wrap section visit-grid">
+<section class="wrap section visit-grid" data-reveal="stagger">
   <div class="card">
     <h2>Opening hours</h2>
     <table class="hours">
