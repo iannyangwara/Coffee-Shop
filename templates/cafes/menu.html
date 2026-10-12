@@ -16,11 +16,11 @@
 <div class="wrap section menu-page">
   {% for category in categories %}
   <section class="menu-category" id="cat-{{ category.id }}">
-    <div class="menu-category-head">
+    <div class="menu-category-head" data-reveal>
       <h2>{{ category.name }}</h2>
       {% if category.description %}<p class="muted">{{ category.description }}</p>{% endif %}
     </div>
-    <div class="menu-rows">
+    <div class="menu-rows" data-reveal="stagger">
       {% for item in category.items.all %}{% include "cafes/_menu_row.html" %}{% endfor %}
     </div>
   </section>
