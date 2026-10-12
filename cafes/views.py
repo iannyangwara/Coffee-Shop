@@ -30,11 +30,11 @@ def cafe_home(request, cafe_slug):
     cafe = _published_cafe(cafe_slug)
     items = MenuItem.objects.filter(category__cafe=cafe).order_by("category__position", "position")
     featured = items.filter(is_featured=True)[:6]
-    # A few pictures of things that aren't already in the favourites, for the "about" section.
+    # A few pictures of things that aren't already in the favourites, for the visit and gallery sections.
     gallery = [i for i in items.filter(is_featured=False) if i.image_url][:4]
-    return render(
-        request, "cafes/home.html", {**_base_context(request, cafe), "featured": featured, "gallery": gallery}
-    )
+    categories = list(cafe.menu_categories.filter(items__isnull=False).distinct().values_list("name", flat=True))
+    context = {**_base_context(request, cafe), "featured": featured, "gallery": gallery, "categories": categories}
+    return render(request, "cafes/home.html", context)
 
 
 def cafe_menu(request, cafe_slug):
