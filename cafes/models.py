@@ -49,6 +49,33 @@ def validate_image_size(image):
         raise ValidationError("Image is too large (max 5 MB).")
 
 
+class StockImage(models.TextChoices):
+    """Built-in photos (static/cafes/stock/) for cafés that don't have their own photos yet."""
+
+    ESPRESSO = "espresso", "Espresso"
+    CAPPUCCINO = "cappuccino", "Cappuccino"
+    LATTE = "latte", "Latte"
+    CHAI = "chai", "Chai / tea"
+    HOT_CHOCOLATE = "hot-chocolate", "Hot chocolate"
+    ICED_LATTE = "iced-latte", "Iced coffee"
+    JUICE = "juice", "Juice"
+    CROISSANT = "croissant", "Croissant"
+    BANANA_BREAD = "banana-bread", "Cake / loaf slice"
+    MANDAZI = "mandazi", "Doughnuts / mandazi"
+    BREAKFAST = "breakfast", "Full breakfast"
+    AVOCADO_TOAST = "avocado-toast", "Avocado toast"
+
+
+class StockCover(models.TextChoices):
+    """Built-in home page photos (static/cafes/stock/covers/) for cafés without their own cover photo."""
+
+    COUNTER = "counter", "Café counter"
+    COFFEE_BAR = "coffee-bar", "Coffee bar"
+    TERRACE = "terrace", "Street terrace"
+    GARDEN = "garden", "Garden café"
+    WINDOW_SEAT = "window-seat", "Window seat"
+
+
 class Cafe(models.Model):
     name = models.CharField(max_length=120)
     slug = models.SlugField(
@@ -77,6 +104,13 @@ class Cafe(models.Model):
 
     logo = models.ImageField(upload_to="logos/", blank=True, validators=[validate_image_size])
     cover_photo = models.ImageField(upload_to="covers/", blank=True, validators=[validate_image_size])
+    stock_cover = models.CharField(
+        "built-in cover photo",
+        max_length=30,
+        choices=StockCover.choices,
+        default=StockCover.COUNTER,
+        help_text="Shown at the top of your home page when you haven't uploaded a cover photo.",
+    )
     brand_colour = models.CharField(max_length=7, default="#6b3e26", validators=[hex_colour])
 
     is_published = models.BooleanField(default=True, help_text="Unpublished cafés are hidden from the public.")
@@ -104,7 +138,7 @@ class Cafe(models.Model):
 
     @property
     def cover_url(self):
-        return self.cover_photo.url if self.cover_photo else static("cafes/stock/cover.svg")
+        return self.cover_photo.url if self.cover_photo else static(f"cafes/stock/covers/{self.stock_cover}.jpg")
 
     @property
     def tz(self):
@@ -231,23 +265,6 @@ class MenuCategory(models.Model):
         return self.name
 
 
-class StockImage(models.TextChoices):
-    """Built-in pictures (static/cafes/stock/) for cafés that don't have their own photos yet."""
-
-    ESPRESSO = "espresso", "Espresso"
-    CAPPUCCINO = "cappuccino", "Cappuccino"
-    LATTE = "latte", "Latte"
-    CHAI = "chai", "Chai / tea"
-    HOT_CHOCOLATE = "hot-chocolate", "Hot chocolate"
-    ICED_LATTE = "iced-latte", "Iced coffee"
-    JUICE = "juice", "Juice"
-    CROISSANT = "croissant", "Croissant"
-    BANANA_BREAD = "banana-bread", "Cake / loaf slice"
-    MANDAZI = "mandazi", "Mandazi / pastries"
-    BREAKFAST = "breakfast", "Full breakfast"
-    AVOCADO_TOAST = "avocado-toast", "Avocado toast"
-
-
 class MenuItem(models.Model):
     category = models.ForeignKey(MenuCategory, on_delete=models.CASCADE, related_name="items")
     name = models.CharField(max_length=100)
@@ -294,11 +311,11 @@ class MenuItem(models.Model):
 
     @property
     def image_url(self):
-        """The uploaded photo if there is one, else the chosen built-in picture, else nothing."""
+        """The uploaded photo if there is one, else the chosen built-in photo, else nothing."""
         if self.photo:
             return self.photo.url
         if self.stock_image:
-            return static(f"cafes/stock/{self.stock_image}.svg")
+            return static(f"cafes/stock/{self.stock_image}.jpg")
         return ""
 
 

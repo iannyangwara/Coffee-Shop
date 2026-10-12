@@ -23,6 +23,7 @@ class CafeSettingsForm(forms.ModelForm):
             "longitude",
             "logo",
             "cover_photo",
+            "stock_cover",
             "brand_colour",
             "clock_in_radius_m",
             "accepts_orders",
@@ -31,7 +32,9 @@ class CafeSettingsForm(forms.ModelForm):
         widgets = {
             "about": forms.Textarea(attrs={"rows": 5}),
             "brand_colour": forms.TextInput(attrs={"type": "color"}),
+            "stock_cover": forms.RadioSelect,
         }
+        labels = {"cover_photo": "Your own cover photo", "stock_cover": "Or pick a built-in cover photo"}
         help_texts = {
             "latitude": "Find it by right-clicking the café on Google Maps.",
         }
@@ -76,7 +79,7 @@ class MenuItemForm(forms.ModelForm):
             "position",
         ]
         widgets = {"description": forms.Textarea(attrs={"rows": 3}), "stock_image": forms.RadioSelect}
-        labels = {"photo": "Your own photo", "stock_image": "Or pick a built-in picture"}
+        labels = {"photo": "Your own photo", "stock_image": "Or pick a built-in photo"}
 
     def __init__(self, *args, cafe, **kwargs):
         super().__init__(*args, **kwargs)

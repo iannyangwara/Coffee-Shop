@@ -57,9 +57,9 @@ class PictureTests(TestCase):
 
     def test_built_in_picture_used_when_no_photo(self):
         item = make_item(self.cafe, "Latte", stock_image="latte", is_featured=True)
-        self.assertEqual(item.image_url, "/static/cafes/stock/latte.svg")
+        self.assertEqual(item.image_url, "/static/cafes/stock/latte.jpg")
         response = self.client.get(reverse("cafes:menu", args=["bean-house"]))
-        self.assertContains(response, "/static/cafes/stock/latte.svg")
+        self.assertContains(response, "/static/cafes/stock/latte.jpg")
 
     def test_no_picture_means_no_image(self):
         item = make_item(self.cafe, "Plain")
@@ -68,17 +68,25 @@ class PictureTests(TestCase):
         self.assertContains(response, "Plain")
         self.assertNotContains(response, "menu-thumb")
 
-    def test_default_cover_when_none_uploaded(self):
-        self.assertEqual(self.cafe.cover_url, "/static/cafes/stock/cover.svg")
+    def test_built_in_cover_when_none_uploaded(self):
+        self.assertEqual(self.cafe.cover_url, "/static/cafes/stock/covers/counter.jpg")
+        self.cafe.stock_cover = "terrace"
+        self.cafe.save()
+        response = self.client.get(reverse("cafes:home", args=["bean-house"]))
+        self.assertContains(response, "/static/cafes/stock/covers/terrace.jpg")
 
-    def test_every_built_in_picture_file_exists(self):
+    def test_every_built_in_photo_file_exists(self):
         from django.conf import settings
 
-        from cafes.models import StockImage
+        from cafes.models import StockCover, StockImage
 
-        for value in [*StockImage.values, "cover"]:
-            with self.subTest(value):
-                self.assertTrue((settings.BASE_DIR / "static" / "cafes" / "stock" / f"{value}.svg").exists())
+        stock = settings.BASE_DIR / "static" / "cafes" / "stock"
+        for path in [
+            *(stock / f"{v}.jpg" for v in StockImage.values),
+            *(stock / "covers" / f"{v}.jpg" for v in StockCover.values),
+        ]:
+            with self.subTest(path.name):
+                self.assertTrue(path.exists())
 
 
 class SeedDemoTests(TestCase):
