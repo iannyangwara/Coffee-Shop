@@ -1,0 +1,41 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Messages{% endblock %}
+{% block content %}
+<h1>Messages</h1>
+<p class="muted">Questions, complaints and compliments sent from your website's contact page.</p>
+<nav class="tabs" aria-label="Which messages">
+  <a href="?show=open" {% if show == 'open' %}aria-current="page"{% endif %}>To answer{% if open_count %} ({{ open_count }}){% endif %}</a>
+  <a href="?show=done" {% if show == 'done' %}aria-current="page"{% endif %}>Dealt with</a>
+</nav>
+{% for enquiry in enquiries %}
+<article class="card enquiry{% if enquiry.kind == 'complaint' and enquiry.status == 'new' %} is-complaint{% endif %}">
+  <header class="enquiry-head">
+    <span class="pill{% if enquiry.kind == 'complaint' %} pill-bad{% endif %}">{{ enquiry.get_kind_display }}</span>
+    <strong>{{ enquiry.name }}</strong>{% if enquiry.customer %} <span class="muted small-text">· has an account</span>{% endif %}
+    <span class="muted small-text">{{ enquiry.created_at|date:"D j M, H:i" }}</span>
+  </header>
+  <p class="enquiry-message">{{ enquiry.message|linebreaksbr }}</p>
+  <p class="small-text">
+    {% if enquiry.phone %}<a href="tel:{{ enquiry.phone }}">{{ enquiry.phone }}</a>{% endif %}
+    {% if enquiry.phone and enquiry.email %} · {% endif %}
+    {% if enquiry.email %}<a href="mailto:{{ enquiry.email }}?subject={{ request.cafe.name|urlencode }}%3A%20your%20{{ enquiry.get_kind_display|lower|urlencode }}">{{ enquiry.email }}</a>{% endif %}
+    {% if enquiry.order_code %} · Order <strong>{{ enquiry.order_code }}</strong>{% endif %}
+  </p>
+  {% if enquiry.status == 'new' %}
+  <form method="post" action="{% url 'dashboard:enquiry_resolve' request.cafe.slug enquiry.pk %}" class="enquiry-form">
+    {% csrf_token %}
+    <label for="note-{{ enquiry.pk }}" class="label">What did you do? (only your team sees this)</label>
+    <input id="note-{{ enquiry.pk }}" name="staff_note" maxlength="500" placeholder="e.g. Called back, offered a free coffee">
+    <button type="submit" class="btn">Mark as dealt with</button>
+  </form>
+  {% else %}
+  <p class="small-text muted">Dealt with{% if enquiry.resolved_by %} by {{ enquiry.resolved_by.first_name|default:enquiry.resolved_by.username }}{% endif %} {{ enquiry.resolved_at|date:"D j M, H:i" }}{% if enquiry.staff_note %}: “{{ enquiry.staff_note }}”{% endif %}</p>
+  <form method="post" action="{% url 'dashboard:enquiry_resolve' request.cafe.slug enquiry.pk %}">
+    {% csrf_token %}<button type="submit" name="action" value="reopen" class="link-button">Move back to open</button>
+  </form>
+  {% endif %}
+</article>
+{% empty %}
+<p class="card muted">{% if show == 'open' %}No messages waiting. Nice.{% else %}Nothing here yet.{% endif %}</p>
+{% endfor %}
+{% endblock %}

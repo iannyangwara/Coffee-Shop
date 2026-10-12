@@ -1,0 +1,14 @@
+{% extends "cafes/base.html" %}
+{% block title %}Sign up · {{ cafe.name }}{% endblock %}
+{% block content %}
+<div class="wrap section narrow-page">
+  <h1 class="page-title">Join {{ cafe.name }}</h1>
+  <p class="page-lead">Order faster with your details filled in, see your past orders and messages, and hear about offers if you'd like.</p>
+  <form method="post" class="card" novalidate>
+    {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+    {% include "customers/_fields.html" %}
+    <button type="submit" class="button wide">Create account</button>
+  </form>
+  <p class="center">Already have an account? <a href="{% url 'cafes:sign_in' cafe.slug %}?next={{ next|urlencode }}">Sign in</a></p>
+</div>
+{% endblock %}

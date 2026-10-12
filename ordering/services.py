@@ -173,7 +173,7 @@ def _count_order(request, cafe):
             cache.set(key, 1, ORDER_WINDOW_SECONDS)
 
 
-def place_order(request, cafe, basket, name, phone, pickup):
+def place_order(request, cafe, basket, name, phone, pickup, customer=None):
     """
     Turn the basket into an order. `pickup` is "asap" or an ISO time from pickup_options.
     Prices come from the menu at this moment, never from the browser.
@@ -205,6 +205,7 @@ def place_order(request, cafe, basket, name, phone, pickup):
                 order = Order.objects.create(
                     cafe=cafe,
                     code=new_code(),
+                    customer=customer,
                     customer_name=name,
                     customer_phone=phone,
                     pickup_at=pickup_at,

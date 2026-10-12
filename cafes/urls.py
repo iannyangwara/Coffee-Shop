@@ -1,5 +1,6 @@
 from django.urls import path
 
+from customers import views as customer_views
 from ordering import views as ordering_views
 
 from . import views
@@ -14,4 +15,10 @@ urlpatterns = [
     path("<slug:cafe_slug>/basket/", ordering_views.basket, name="basket"),
     path("<slug:cafe_slug>/basket/update/", ordering_views.basket_update, name="basket_update"),
     path("<slug:cafe_slug>/order/<uuid:token>/", ordering_views.order_status, name="order_status"),
+    path("<slug:cafe_slug>/contact/", customer_views.contact, name="contact"),
+    path("<slug:cafe_slug>/contact/sent/", customer_views.contact_sent, name="contact_sent"),
+    path("<slug:cafe_slug>/sign-up/", customer_views.sign_up, name="sign_up"),
+    path("<slug:cafe_slug>/sign-in/", customer_views.sign_in, name="sign_in"),
+    path("<slug:cafe_slug>/sign-out/", customer_views.sign_out, name="sign_out"),
+    path("<slug:cafe_slug>/account/", customer_views.account, name="account"),
 ]

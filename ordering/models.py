@@ -46,6 +46,9 @@ class Order(models.Model):
     token = models.UUIDField(
         default=uuid.uuid4, unique=True, editable=False, help_text="Secret part of the tracking link."
     )
+    customer = models.ForeignKey(
+        "customers.Customer", on_delete=models.SET_NULL, null=True, blank=True, related_name="orders"
+    )
     customer_name = models.CharField(max_length=80)
     customer_phone = models.CharField(max_length=30)
     pickup_at = models.DateTimeField(null=True, blank=True, help_text="Empty means as soon as possible.")

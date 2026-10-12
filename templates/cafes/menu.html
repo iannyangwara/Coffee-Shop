@@ -6,7 +6,16 @@
 {% else %}
 {% include "cafes/_page_head.html" with eyebrow=cafe.name heading="Menu" subheading="Made fresh, served with care." %}
 {% endif %}
-{% if categories|length > 1 %}
+<form class="wrap menu-search" id="menu-search" role="search" method="get" action="{% url 'cafes:menu' cafe.slug %}">
+  <label for="menu-q" class="visually-hidden">Search the menu</label>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+  <input id="menu-q" type="search" name="q" value="{{ query }}" placeholder="Search the menu, e.g. latte, vegan, cake" autocomplete="off" enterkeyhint="search">
+  <button type="submit" class="button">Search</button>
+</form>
+{% if query %}
+<p class="wrap search-summary" role="status">{% if result_count %}{{ result_count }} result{{ result_count|pluralize }} for “{{ query }}”{% else %}Nothing on the menu matches “{{ query }}”{% endif %} · <a href="{% url 'cafes:menu' cafe.slug %}">Show the full menu</a></p>
+{% endif %}
+{% if categories|length > 1 and not query %}
 <nav class="category-jump" aria-label="Menu sections">
   <div class="wrap category-jump-inner">
     {% for category in categories %}<a href="#cat-{{ category.id }}">{{ category.name }}</a>{% endfor %}
@@ -25,7 +34,7 @@
     </div>
   </section>
   {% empty %}
-  <p class="muted">The menu is being updated. Please check back soon.</p>
+  {% if query %}<p class="muted">Try a shorter word, or <a href="{% url 'cafes:contact' cafe.slug %}">ask us</a> if you're looking for something special.</p>{% else %}<p class="muted">The menu is being updated. Please check back soon.</p>{% endif %}
   {% endfor %}
 </div>
 {% endblock %}

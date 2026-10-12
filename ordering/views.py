@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 
 from cafes.models import MenuItem
 from cafes.views import _base_context, _published_cafe
+from customers.services import current_customer
 
 from . import services
 from .forms import AddToBasketForm, CheckoutForm
@@ -46,7 +47,9 @@ def basket(request, cafe_slug):
     cafe = _published_cafe(cafe_slug)
     basket = services.Basket(request, cafe)
     asap, slots = services.pickup_options(cafe)
-    form = CheckoutForm(request.POST or None, asap=asap, slots=slots)
+    customer = current_customer(request, cafe)
+    initial = {"name": customer.name, "phone": customer.phone} if customer else {}
+    form = CheckoutForm(request.POST or None, asap=asap, slots=slots, initial=initial)
     if request.method == "POST" and form.is_valid():
         try:
             order = services.place_order(
@@ -56,6 +59,7 @@ def basket(request, cafe_slug):
                 form.cleaned_data["name"],
                 form.cleaned_data["phone"],
                 form.cleaned_data["pickup"],
+                customer=customer,
             )
         except ValidationError as error:
             form.add_error(None, error)

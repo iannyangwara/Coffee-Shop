@@ -1,0 +1,12 @@
+{% extends "cafes/base.html" %}
+{% block title %}Message sent · {{ cafe.name }}{% endblock %}
+{% block content %}
+<div class="wrap section narrow-page">
+  <div class="card center sent-card" data-reveal>
+    <p class="sent-mark" aria-hidden="true">✓</p>
+    <h1 class="page-title">Thanks, message sent</h1>
+    <p>The {{ cafe.name }} team has it and will get back to you soon.</p>
+    <p><a class="button" href="{% url 'cafes:menu' cafe.slug %}">Back to the menu</a></p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% if form.non_field_errors %}<div class="form-error" role="alert">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}
+{% for field in form %}
+{% if field.name == 'website' %}
+<div class="trap" aria-hidden="true"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>
+{% elif field.widget_type == 'radioselect' %}
+<fieldset class="choice-group">
+  <legend>{{ field.label }}</legend>
+  <div class="chips">{% for choice in field %}<label class="chip">{{ choice.tag }}<span>{{ choice.choice_label }}</span></label>{% endfor %}</div>
+  {% for e in field.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+</fieldset>
+{% elif field.widget_type == 'checkbox' %}
+<div class="field field-check">{{ field }} <label for="{{ field.id_for_label }}">{{ field.label }}</label></div>
+{% else %}
+<div class="field">
+  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field }}
+  {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+  {% for e in field.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+</div>
+{% endif %}
+{% endfor %}

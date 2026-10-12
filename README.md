@@ -20,6 +20,14 @@ Built with Django 5.2 (LTS), PostgreSQL and HTMX.
 - Set weekly hours and special closure days
 - Edit café details, logo, cover photo and brand colour (owners only; staff can't)
 
+**Customers** (`/bean-house/contact/`, `/bean-house/sign-up/`, `/bean-house/account/`)
+- Menu search (`/bean-house/menu/?q=latte`): every word must match an item's name, description or section
+- Contact page: phone, WhatsApp, email and a form for questions, complaints and compliments
+  (spam trap, max 5 messages an hour per address); staff answer them under Messages in the dashboard
+- Customer accounts belong to one café and are separate from staff logins, so they can never open the dashboard.
+  Signed-in customers get their details filled in at checkout and see their orders and messages.
+  No password reset by email yet (needs an email provider); customers ask the café instead.
+
 **Platform admin** (`/admin/`): create cafés and link owner/staff logins.
 
 ### Safety built in

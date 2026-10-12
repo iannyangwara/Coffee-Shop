@@ -186,3 +186,13 @@ input[type=checkbox] { width: 20px; height: 20px; }
 .order-actions select { width: auto; flex: 1 1 110px; }
 .order-actions .btn { flex: 1 1 auto; }
 .order-alert { display: block; margin-bottom: 16px; color: var(--ink); text-decoration: none; }
+
+/* Customer messages */
+.enquiry { margin-bottom: 14px; }
+.enquiry.is-complaint { border-left: 4px solid var(--bad); }
+.enquiry-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.enquiry-message { white-space: normal; margin: 0 0 8px; font-size: 1.02rem; }
+.enquiry-form { display: grid; gap: 8px; margin-top: 10px; }
+.enquiry-form input { font: inherit; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; }
+.enquiry-form .btn { justify-self: start; }
+@media (min-width: 900px) { .dash-nav { flex-wrap: wrap; overflow-x: visible; } }

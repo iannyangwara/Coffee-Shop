@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from cafes.models import Cafe, Closure, MenuCategory, MenuItem, OpeningHours
+from customers.models import Enquiry
 from operations.reports import sales_report
 from operations.services import open_shift
 from ordering.models import Order
@@ -60,6 +61,8 @@ def overview(request):
         "is_open": cafe.is_open_now(),
         "my_shift": open_shift(cafe, request.user),
         "waiting_orders": cafe.orders.filter(status__in=Order.ACTIVE).count(),
+        "open_messages": cafe.enquiries.filter(status=Enquiry.Status.NEW).count(),
+        "open_complaints": cafe.enquiries.filter(status=Enquiry.Status.NEW, kind=Enquiry.Kind.COMPLAINT).count(),
     }
     if request.membership.is_owner:
         context["today"] = sales_report(cafe, "today")

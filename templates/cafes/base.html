@@ -34,9 +34,12 @@
         <span class="brand-word">{{ cafe.name }}</span>
       </a>
       <nav class="site-nav" aria-label="Main">
-        <a href="{% url 'cafes:home' cafe.slug %}" {% if request.resolver_match.url_name == 'home' %}aria-current="page"{% endif %}>Home</a>
+        <a class="nav-home" href="{% url 'cafes:home' cafe.slug %}" {% if request.resolver_match.url_name == 'home' %}aria-current="page"{% endif %}>Home</a>
         <a href="{% url 'cafes:menu' cafe.slug %}" {% if request.resolver_match.url_name == 'menu' %}aria-current="page"{% endif %}>Menu</a>
         <a href="{% url 'cafes:visit' cafe.slug %}" {% if request.resolver_match.url_name == 'visit' %}aria-current="page"{% endif %}>Visit</a>
+        <a href="{% url 'cafes:contact' cafe.slug %}" {% if request.resolver_match.url_name == 'contact' or request.resolver_match.url_name == 'contact_sent' %}aria-current="page"{% endif %}>Contact</a>
+        <a class="icon-link nav-search" href="{% url 'cafes:menu' cafe.slug %}#menu-search" aria-label="Search the menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></a>
+        <a class="icon-link{% if customer %} is-signed-in{% endif %}" href="{% if customer %}{% url 'cafes:account' cafe.slug %}{% else %}{% url 'cafes:sign_in' cafe.slug %}{% endif %}" {% if request.resolver_match.url_name in 'account sign_in sign_up' %}aria-current="page"{% endif %} aria-label="{% if customer %}Your account{% else %}Sign in or sign up{% endif %}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></a>
         {% if cafe.accepts_orders or basket_count %}<a class="basket-link" href="{% url 'cafes:basket' cafe.slug %}" {% if request.resolver_match.url_name == 'basket' %}aria-current="page"{% endif %} aria-label="Your basket, {{ basket_count }} item{{ basket_count|pluralize }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.4 11.2a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>{% if basket_count %}<span class="basket-count">{{ basket_count }}</span>{% endif %}</a>{% endif %}
       </nav>
     </div>
@@ -68,6 +71,8 @@
           {% if cafe.whatsapp %}<li><a href="https://wa.me/{{ cafe.whatsapp }}" rel="noopener">WhatsApp</a></li>{% endif %}
           {% if cafe.instagram %}<li><a href="https://instagram.com/{{ cafe.instagram }}" rel="noopener">Instagram</a></li>{% endif %}
           {% if cafe.email %}<li><a href="mailto:{{ cafe.email }}">{{ cafe.email }}</a></li>{% endif %}
+          <li><a href="{% url 'cafes:contact' cafe.slug %}">Questions &amp; complaints</a></li>
+          <li>{% if customer %}<a href="{% url 'cafes:account' cafe.slug %}">Your account</a>{% else %}<a href="{% url 'cafes:sign_up' cafe.slug %}">Sign up</a> · <a href="{% url 'cafes:sign_in' cafe.slug %}">Sign in</a>{% endif %}</li>
         </ul>
       </div>
     </div>

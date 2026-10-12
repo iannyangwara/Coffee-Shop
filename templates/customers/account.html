@@ -1,0 +1,56 @@
+{% extends "cafes/base.html" %}
+{% load cafe_tags %}
+{% block title %}Your account · {{ cafe.name }}{% endblock %}
+{% block content %}
+<div class="wrap section narrow-page">
+  <p class="eyebrow">Your account</p>
+  <h1 class="page-title">Hi, {{ customer.name }}</h1>
+
+  <section class="card account-block">
+    <h2>Your orders</h2>
+    {% if orders %}
+    <ul class="plain account-list">
+      {% for order in orders %}
+      <li>
+        <a href="{% url 'cafes:order_status' cafe.slug order.token %}"><strong>{{ order.code }}</strong></a>
+        <span class="muted">{{ order.created_at|date:"j M, g:i A" }} · {% for line in order.lines.all %}{{ line.quantity }} × {{ line.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+        <span class="account-meta"><span class="status-pill">{{ order.get_status_display }}</span> {{ order.total|money:cafe }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">No orders yet.{% if cafe.accepts_orders %} <a href="{% url 'cafes:menu' cafe.slug %}">Order ahead</a> and pay when you collect.{% endif %}</p>
+    {% endif %}
+  </section>
+
+  <section class="card account-block">
+    <h2>Your messages</h2>
+    {% if enquiries %}
+    <ul class="plain account-list">
+      {% for enquiry in enquiries %}
+      <li>
+        <strong>{{ enquiry.get_kind_display }}</strong>
+        <span class="muted">{{ enquiry.created_at|date:"j M, g:i A" }} · {{ enquiry.message|truncatechars:90 }}</span>
+        <span class="account-meta"><span class="status-pill{% if enquiry.status == 'resolved' %} is-done{% endif %}">{% if enquiry.status == 'resolved' %}Dealt with{% else %}With the team{% endif %}</span></span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">No messages yet.</p>
+    {% endif %}
+    <p><a href="{% url 'cafes:contact' cafe.slug %}">Send a question or complaint</a></p>
+  </section>
+
+  <form method="post" class="card account-block" novalidate>
+    {% csrf_token %}
+    <h2>Your details</h2>
+    <p class="muted small">Signed in as {{ customer.email }}</p>
+    {% include "customers/_fields.html" %}
+    <button type="submit" class="button">Save details</button>
+  </form>
+
+  <form method="post" action="{% url 'cafes:sign_out' cafe.slug %}" class="center">
+    {% csrf_token %}<button type="submit" class="button button-outline">Sign out</button>
+  </form>
+</div>
+{% endblock %}
