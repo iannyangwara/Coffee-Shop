@@ -21,6 +21,7 @@
     <nav class="dash-wrap dash-nav" aria-label="Dashboard">
       <a href="{% url 'dashboard:overview' request.cafe.slug %}" {% if name == 'overview' %}aria-current="page"{% endif %}>Overview</a>
       <a href="{% url 'dashboard:orders' request.cafe.slug %}" {% if name == 'orders' %}aria-current="page"{% endif %}>Orders</a>
+      <a href="{% url 'dashboard:inbox' request.cafe.slug %}" {% if name == 'inbox' %}aria-current="page"{% endif %}>Messages</a>
       <a href="{% url 'dashboard:till' request.cafe.slug %}" {% if name == 'till' %}aria-current="page"{% endif %}>Till</a>
       <a href="{% url 'dashboard:clock' request.cafe.slug %}" {% if name == 'clock' %}aria-current="page"{% endif %}>Clock in</a>
       {% if request.membership.is_owner %}
@@ -30,6 +31,7 @@
       <a href="{% url 'dashboard:menu' request.cafe.slug %}" {% if name == 'menu' or 'item' in name or 'category' in name %}aria-current="page"{% endif %}>Menu</a>
       <a href="{% url 'dashboard:hours' request.cafe.slug %}" {% if name == 'hours' %}aria-current="page"{% endif %}>Hours</a>
       {% if request.membership.is_owner %}
+      <a href="{% url 'dashboard:customers' request.cafe.slug %}" {% if name == 'customers' %}aria-current="page"{% endif %}>Customers</a>
       <a href="{% url 'dashboard:team' request.cafe.slug %}" {% if name == 'team' %}aria-current="page"{% endif %}>Team</a>
       <a href="{% url 'dashboard:settings' request.cafe.slug %}" {% if name == 'settings' %}aria-current="page"{% endif %}>Details</a>
       {% endif %}

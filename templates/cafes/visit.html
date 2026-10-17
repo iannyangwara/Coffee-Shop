@@ -29,6 +29,7 @@
       {% if cafe.email %}<li><a href="mailto:{{ cafe.email }}">{{ cafe.email }}</a></li>{% endif %}
       {% if cafe.whatsapp %}<li><a href="https://wa.me/{{ cafe.whatsapp }}" rel="noopener">Message us on WhatsApp</a></li>{% endif %}
     </ul>
+    <p><a class="button button-outline" href="{% url 'cafes:contact' cafe.slug %}">Send us a message</a></p>
   </div>
   {% if cafe.latitude and cafe.longitude %}
   <div class="card map-card">

@@ -1,0 +1,30 @@
+{% extends "cafes/base.html" %}
+{% block title %}Contact · {{ cafe.name }}{% endblock %}
+{% block content %}
+{% include "cafes/_page_head.html" with eyebrow=cafe.name heading="Contact" subheading="Questions, complaints or kind words. We read every message." %}
+<section class="wrap section contact-grid">
+  <form method="post" class="card" novalidate data-reveal>
+    {% csrf_token %}
+    <h2>Send us a message</h2>
+    {% include "customers/_fields.html" %}
+    <button type="submit" class="button wide">Send message</button>
+    <p class="muted small">We'll reply by email or phone, usually within a day.</p>
+  </form>
+  <aside class="contact-side" data-reveal="stagger">
+    <div class="card">
+      <h2>Talk to us</h2>
+      <ul class="plain contact-list">
+        {% if cafe.phone %}<li><span class="contact-label">Call</span><a href="tel:{{ cafe.phone }}">{{ cafe.phone }}</a></li>{% endif %}
+        {% if cafe.whatsapp %}<li><span class="contact-label">WhatsApp</span><a href="https://wa.me/{{ cafe.whatsapp }}" rel="noopener">Message us</a></li>{% endif %}
+        {% if cafe.email %}<li><span class="contact-label">Email</span><a href="mailto:{{ cafe.email }}">{{ cafe.email }}</a></li>{% endif %}
+        {% if cafe.instagram %}<li><span class="contact-label">Instagram</span><a href="https://instagram.com/{{ cafe.instagram }}" rel="noopener">@{{ cafe.instagram }}</a></li>{% endif %}
+        {% if cafe.address %}<li><span class="contact-label">Visit</span><a href="{% url 'cafes:visit' cafe.slug %}">{{ cafe.address }}{% if cafe.town %}, {{ cafe.town }}{% endif %}</a></li>{% endif %}
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Problem with an order?</h2>
+      <p>Choose <strong>Complaint</strong> and add your order code, and the team will look into it straight away. For anything urgent today, please call.</p>
+    </div>
+  </aside>
+</section>
+{% endblock %}

@@ -12,6 +12,7 @@ from django.db.models import F
 from django.utils import timezone
 
 from cafes.models import Cafe, MenuCategory, MenuItem, OpeningHours, StaffMembership
+from customers.models import Enquiry
 from operations.models import Sale, SaleLine, Shift, distance_m
 
 MENU = {
@@ -156,7 +157,10 @@ class Command(BaseCommand):
         if user is None:
             self.stderr.write("No owner login created: pass --owner-password or set DEMO_OWNER_PASSWORD.")
             return
-        self._add_demo_barista(Cafe.objects.get(slug="bean-house"))
+        bean_house = Cafe.objects.get(slug="bean-house")
+        self._add_demo_barista(bean_house)
+        if not bean_house.enquiries.exists():
+            self._add_demo_messages(bean_house)
 
     def _demo_cafe(self, slug, details):
         cafe, created = Cafe.objects.get_or_create(slug=slug, defaults=details)
@@ -348,3 +352,32 @@ class Command(BaseCommand):
                 clock_out_distance_m=round(distance_m(out_lat, out_lng, lat, lng)),
             )
         self.stdout.write("Added demo barista Amina with two weeks of shifts.")
+
+    def _add_demo_messages(self, cafe):
+        """A few sample customer messages so the dashboard's Messages page has something to show."""
+        Enquiry.objects.bulk_create(
+            [
+                Enquiry(
+                    cafe=cafe,
+                    kind=Enquiry.Kind.COMPLAINT,
+                    name="Sample customer",
+                    email="customer@example.com",
+                    order_code="K7QD",
+                    message="My flat white was lukewarm when I collected it this morning.",
+                ),
+                Enquiry(
+                    cafe=cafe,
+                    kind=Enquiry.Kind.QUESTION,
+                    name="Sample visitor",
+                    phone="123456789",
+                    message="Do you have oat milk, and can I bring my dog inside?",
+                ),
+                Enquiry(
+                    cafe=cafe,
+                    kind=Enquiry.Kind.FEEDBACK,
+                    name="Sample regular",
+                    email="regular@example.com",
+                    message="The banana bread is the best in Lisbon. Thank you!",
+                ),
+            ]
+        )

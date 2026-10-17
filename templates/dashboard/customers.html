@@ -1,0 +1,30 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+<h1>Customers</h1>
+<div class="stats">
+  <div class="stat"><span class="stat-value">{{ customers|length }}</span><span class="stat-label">signed up</span></div>
+  <div class="stat"><span class="stat-value">{{ news_count }}</span><span class="stat-label">want offers</span></div>
+</div>
+<p class="muted">People who created an account on your website. Only contact people about offers if they ticked “want offers”.</p>
+{% if customers %}
+<div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th>Name</th><th>Contact</th><th class="num">Orders</th><th>Offers</th><th>Joined</th></tr></thead>
+    <tbody>
+      {% for c in customers %}
+      <tr>
+        <td><strong>{{ c.name }}</strong></td>
+        <td><a href="mailto:{{ c.email }}">{{ c.email }}</a>{% if c.phone %}<br><a href="tel:{{ c.phone }}">{{ c.phone }}</a>{% endif %}</td>
+        <td class="num">{{ c.order_count }}</td>
+        <td>{% if c.wants_news %}<span class="pill">Yes</span>{% else %}<span class="muted">No</span>{% endif %}</td>
+        <td>{{ c.created_at|date:"j M Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="card muted">Nobody has signed up yet. Customers can create an account from the person icon at the top of your website.</p>
+{% endif %}
+{% endblock %}

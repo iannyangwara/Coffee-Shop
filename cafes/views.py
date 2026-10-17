@@ -1,6 +1,7 @@
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404, render
 
+from customers.services import current_customer
 from ordering.services import Basket, latest_order
 
 from .models import Cafe, MenuCategory, MenuItem
@@ -23,6 +24,7 @@ def _base_context(request, cafe):
         "today_hours": cafe.hours_for(today),
         "basket_count": Basket(request, cafe).count(),
         "my_order": latest_order(request, cafe),
+        "customer": current_customer(request, cafe),
     }
 
 
@@ -39,11 +41,22 @@ def cafe_home(request, cafe_slug):
 
 def cafe_menu(request, cafe_slug):
     cafe = _published_cafe(cafe_slug)
-    categories = MenuCategory.objects.filter(cafe=cafe).prefetch_related(
-        Prefetch("items", queryset=MenuItem.objects.order_by("position", "id"))
-    )
+    query = " ".join(request.GET.get("q", "").split())[:60]
+    items = MenuItem.objects.order_by("position", "id")
+    for word in query.split():
+        # Every word has to match somewhere: "iced latte" finds the iced latte, not every latte.
+        items = items.filter(
+            Q(name__icontains=word) | Q(description__icontains=word) | Q(category__name__icontains=word)
+        )
+    categories = MenuCategory.objects.filter(cafe=cafe).prefetch_related(Prefetch("items", queryset=items))
     categories = [c for c in categories if c.items.all()]
-    return render(request, "cafes/menu.html", {**_base_context(request, cafe), "categories": categories})
+    context = {
+        **_base_context(request, cafe),
+        "categories": categories,
+        "query": query,
+        "result_count": sum(len(c.items.all()) for c in categories),
+    }
+    return render(request, "cafes/menu.html", context)
 
 
 def cafe_visit(request, cafe_slug):
